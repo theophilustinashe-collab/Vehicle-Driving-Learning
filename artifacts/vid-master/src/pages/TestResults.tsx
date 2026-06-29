@@ -13,7 +13,7 @@ export default function TestResults() {
   const { data: result, isLoading } = useGetTestResult(sessionId || "", {
     query: {
       enabled: !!sessionId,
-    }
+    } as any
   });
 
   if (!match || !sessionId) return null;
@@ -64,7 +64,7 @@ export default function TestResults() {
               {result.passed ? "Congratulations, you passed!" : "Keep practicing, you failed."}
             </h2>
             <p className="text-muted-foreground">
-              You scored {result.score} out of {result.total}. The passing score is 15.
+              You scored {result.score} out of {result.total}. The passing score is {result.total}.
             </p>
             <div className="mt-6 flex items-center justify-center md:justify-start gap-4">
               <Link href="/test">
@@ -81,7 +81,7 @@ export default function TestResults() {
             <Progress 
               value={result.percentage} 
               className="h-3 mb-2" 
-              indicatorColor={result.passed ? "bg-emerald-500" : "bg-destructive"}
+              indicatorClassName={result.passed ? "bg-emerald-500" : "bg-destructive"}
             />
             <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Final Score</div>
           </div>

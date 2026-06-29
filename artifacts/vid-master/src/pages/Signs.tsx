@@ -3,8 +3,10 @@ import { useListSigns } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Info } from "lucide-react";
+import { Search, Info, ArrowLeft } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import {
   Dialog,
   DialogContent,
@@ -33,10 +35,17 @@ export default function Signs() {
   ];
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Road Signs Library</h1>
-        <p className="text-muted-foreground mt-1">Study and memorize the official Zimbabwe road signs.</p>
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+      <div className="flex items-center gap-4">
+        <Link href="/dashboard">
+          <Button variant="ghost" size="icon" className="hidden lg:flex">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Road Signs Library</h1>
+          <p className="text-muted-foreground mt-1">Study and memorize the official Zimbabwe road signs.</p>
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">

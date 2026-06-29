@@ -3,8 +3,10 @@ import { useGetLeaderboard, GetLeaderboardPeriod } from "@workspace/api-client-r
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Medal, Award, Flame } from "lucide-react";
+import { Trophy, Medal, Award, Flame, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 export default function Leaderboard() {
   const [period, setPeriod] = useState<GetLeaderboardPeriod>("weekly");
@@ -12,23 +14,30 @@ export default function Leaderboard() {
   const { data: leaderboard, isLoading } = useGetLeaderboard({ period });
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-primary text-primary-foreground p-8 rounded-2xl relative overflow-hidden">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-primary text-primary-foreground p-6 md:p-8 rounded-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
           <Trophy className="w-64 h-64" />
         </div>
         
-        <div className="relative z-10">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight flex items-center gap-3">
-            <Trophy className="w-8 h-8 text-secondary" />
-            Wall of Excellence
-          </h1>
-          <p className="text-primary-foreground/80 mt-2 font-medium">
-            The top performers mastering the VID curriculum.
-          </p>
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-4">
+          <Link href="/dashboard">
+            <Button variant="ghost" size="icon" className="hidden lg:flex text-primary-foreground hover:bg-primary-foreground/10">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl md:text-4xl font-black tracking-tight flex items-center gap-3">
+              <Trophy className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
+              Wall of Excellence
+            </h1>
+            <p className="text-primary-foreground/80 mt-1 md:mt-2 font-medium text-sm md:text-base">
+              The top performers mastering the VID curriculum.
+            </p>
+          </div>
         </div>
 
-        <Tabs value={period} onValueChange={(v) => setPeriod(v as GetLeaderboardPeriod)} className="relative z-10">
+        <Tabs value={period} onValueChange={(v) => setPeriod(v as GetLeaderboardPeriod)} className="relative z-10 w-full md:w-auto overflow-x-auto">
           <TabsList className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground">
             <TabsTrigger value="daily" className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">Daily</TabsTrigger>
             <TabsTrigger value="weekly" className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">Weekly</TabsTrigger>

@@ -46,8 +46,8 @@ export default function Dashboard() {
             <Target className="w-4 h-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboard.examReadiness}%</div>
-            <Progress value={dashboard.examReadiness} className="mt-3 h-2" />
+            <div className="text-2xl font-bold">{dashboard?.examReadiness ?? 0}%</div>
+            <Progress value={dashboard?.examReadiness ?? 0} className="mt-3 h-2" />
             <p className="text-xs text-muted-foreground mt-2">
               Based on recent test scores
             </p>
@@ -60,7 +60,7 @@ export default function Dashboard() {
             <Zap className="w-4 h-4 text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboard.streak} Days</div>
+            <div className="text-2xl font-bold">{dashboard?.streak ?? 0} Days</div>
             <p className="text-xs text-muted-foreground mt-3">
               Keep it up! Consistency is key.
             </p>
@@ -73,10 +73,10 @@ export default function Dashboard() {
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboard.accuracy}%</div>
-            <Progress value={dashboard.accuracy} className="mt-3 h-2" />
+            <div className="text-2xl font-bold">{dashboard?.accuracy ?? 0}%</div>
+            <Progress value={dashboard?.accuracy ?? 0} className="mt-3 h-2" />
             <p className="text-xs text-muted-foreground mt-2">
-              Across all {dashboard.totalTests} tests taken
+              Across all {dashboard?.totalTests ?? 0} tests taken
             </p>
           </CardContent>
         </Card>
@@ -87,10 +87,10 @@ export default function Dashboard() {
             <Award className="w-4 h-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboard.rank}</div>
+            <div className="text-2xl font-bold">{dashboard?.rank ?? "Beginner"}</div>
             <div className="flex items-center gap-2 mt-3">
-              <span className="text-xs font-semibold px-2 py-1 bg-primary/10 text-primary rounded-md">Lvl {dashboard.level}</span>
-              <span className="text-xs text-muted-foreground">{dashboard.xp} XP</span>
+              <span className="text-xs font-semibold px-2 py-1 bg-primary/10 text-primary rounded-md">Lvl {dashboard?.level ?? 1}</span>
+              <span className="text-xs text-muted-foreground">{dashboard?.xp ?? 0} XP</span>
             </div>
           </CardContent>
         </Card>
@@ -103,7 +103,7 @@ export default function Dashboard() {
             <CardDescription>Your last 5 attempts</CardDescription>
           </CardHeader>
           <CardContent>
-            {dashboard.recentTests.length === 0 ? (
+            {!dashboard?.recentTests || dashboard.recentTests.length === 0 ? (
               <div className="text-center py-12 border-2 border-dashed border-muted rounded-lg">
                 <p className="text-muted-foreground">You haven't taken any tests yet.</p>
                 <Link href="/test">

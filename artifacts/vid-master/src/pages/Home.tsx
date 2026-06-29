@@ -1,4 +1,4 @@
-import { useState } from "wouter";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,18 +9,19 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Signpost, Car, ShieldCheck } from "lucide-react";
+import { Signpost, Car, ShieldCheck, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
 });
 
 const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(6),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export default function Home() {
@@ -29,6 +30,7 @@ export default function Home() {
   const login = useLogin();
   const register = useRegister();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("login");
 
   if (user) {
     setLocation("/dashboard");
@@ -84,14 +86,15 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row">
+    <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden">
       {/* Left branding panel */}
-      <div className="bg-sidebar flex-1 p-8 lg:p-16 flex flex-col justify-between text-sidebar-foreground relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
+      <div className="bg-[#0f172a] flex-1 p-8 lg:p-16 flex flex-col justify-between text-white relative overflow-hidden hidden md:flex">
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
           <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1" />
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="0.5" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#grid)" />
@@ -99,155 +102,244 @@ export default function Home() {
         </div>
         
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-12">
-            <div className="bg-sidebar-primary text-sidebar-primary-foreground p-3 rounded-lg">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-3 mb-12"
+          >
+            <div className="bg-primary text-primary-foreground p-3 rounded-xl shadow-lg shadow-primary/20">
               <Signpost className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">VID Master</h1>
-              <p className="text-sm font-semibold tracking-widest text-sidebar-primary uppercase">Zimbabwe</p>
+              <h1 className="text-3xl font-black tracking-tighter">VID Master</h1>
+              <p className="text-xs font-bold tracking-[0.2em] text-primary uppercase opacity-80">Zimbabwe</p>
             </div>
-          </div>
+          </motion.div>
 
           <div className="space-y-8 max-w-lg mt-12">
-            <h2 className="text-4xl lg:text-5xl font-extrabold leading-tight text-white">
-              Pass your provisional test with confidence.
-            </h2>
-            <p className="text-lg text-sidebar-foreground/80">
-              The most comprehensive, accurate, and up-to-date learner's licence preparation platform for Zimbabwe.
-            </p>
+            <motion.h2
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight"
+            >
+              Master the Road, <br/>
+              <span className="text-primary italic">Ace the Test.</span>
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-xl text-slate-400 font-medium leading-relaxed"
+            >
+              The most advanced preparation platform for the Zimbabwe Provisional Driver's Licence.
+            </motion.p>
 
-            <div className="space-y-6 pt-8">
-              <div className="flex items-start gap-4">
-                <div className="bg-sidebar-accent p-2 rounded-md shrink-0">
-                  <ShieldCheck className="w-5 h-5 text-sidebar-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">Government Aligned</h3>
-                  <p className="text-sm text-sidebar-foreground/70">Questions meticulously matched to the official VID curriculum.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="bg-sidebar-accent p-2 rounded-md shrink-0">
-                  <Car className="w-5 h-5 text-sidebar-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">Simulated Testing</h3>
-                  <p className="text-sm text-sidebar-foreground/70">Practice under real exam conditions with our 8-minute timed tests.</p>
-                </div>
-              </div>
+            <div className="space-y-6 pt-12">
+              {[
+                { icon: ShieldCheck, title: "Official Curriculum", desc: "100% aligned with VID standards." },
+                { icon: Car, title: "Exam Simulator", desc: "Realistic 8-minute timed practice tests." },
+                { icon: Trophy, title: "Leaderboard", desc: "Compete with other learners across Zimbabwe." }
+              ].map((feature, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 + (i * 0.1) }}
+                  className="flex items-start gap-4"
+                >
+                  <div className="bg-white/5 border border-white/10 p-2.5 rounded-xl shrink-0">
+                    <feature.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">{feature.title}</h3>
+                    <p className="text-slate-400 text-sm">{feature.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="relative z-10 text-sm text-sidebar-foreground/50 mt-16 font-medium">
-          © {new Date().getFullYear()} VID Master Zimbabwe. Not officially affiliated with the Vehicle Inspection Department.
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.4 }}
+          transition={{ delay: 1 }}
+          className="relative z-10 text-xs font-medium tracking-wide"
+        >
+          © {new Date().getFullYear()} VID Master Zimbabwe • Trusted by thousands of learners.
+        </motion.div>
+      </div>
+
+      {/* Mobile Branding (only visible on small screens) */}
+      <div className="md:hidden bg-[#0f172a] p-6 flex items-center justify-between text-white border-b border-white/10">
+        <div className="flex items-center gap-2">
+          <Signpost className="w-6 h-6 text-primary" />
+          <span className="font-black text-xl tracking-tighter">VID Master</span>
         </div>
       </div>
 
       {/* Right Auth Panel */}
-      <div className="flex-1 flex items-center justify-center p-8 lg:p-16 bg-muted/20">
-        <Card className="w-full max-w-md shadow-2xl border-0">
-          <CardHeader className="space-y-1 text-center pb-6">
-            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-            <CardDescription>Sign in to your account or create a new one</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login">
-                <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                    <FormField
-                      control={loginForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <FormControl>
-                            <Input placeholder="learner@example.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex justify-between items-center">
-                            <FormLabel>Password</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" className="w-full mt-6" disabled={login.isPending}>
-                      {login.isPending ? "Signing in..." : "Sign In"}
-                    </Button>
-                  </form>
-                </Form>
-              </TabsContent>
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-slate-50 relative overflow-hidden">
+        {/* Background Decorations */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
 
-              <TabsContent value="register">
-                <Form {...registerForm}>
-                  <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                    <FormField
-                      control={registerForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={registerForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <FormControl>
-                            <Input placeholder="learner@example.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={registerForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" className="w-full mt-6" disabled={register.isPending}>
-                      {register.isPending ? "Creating account..." : "Create Account"}
-                    </Button>
-                  </form>
-                </Form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md relative z-10"
+        >
+          <Card className="shadow-2xl shadow-slate-200 border-slate-200 overflow-hidden">
+            <CardHeader className="space-y-2 text-center pb-8 pt-8 bg-white border-b border-slate-100">
+              <CardTitle className="text-3xl font-black tracking-tight text-slate-900">
+                {activeTab === "login" ? "Welcome Back" : "Start Learning"}
+              </CardTitle>
+              <CardDescription className="text-slate-500 font-medium text-base px-4">
+                {activeTab === "login"
+                  ? "Enter your credentials to access your dashboard."
+                  : "Join thousands of successful learners today."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-8">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 p-1 h-12">
+                  <TabsTrigger value="login" className="font-bold data-[state=active]:shadow-md">Login</TabsTrigger>
+                  <TabsTrigger value="register" className="font-bold data-[state=active]:shadow-md">Register</TabsTrigger>
+                </TabsList>
+
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, x: activeTab === "login" ? -10 : 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: activeTab === "login" ? 10 : -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <TabsContent value="login" className="mt-0 outline-none">
+                      <Form {...loginForm}>
+                        <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-5">
+                          <FormField
+                            control={loginForm.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem className="space-y-1.5">
+                                <FormLabel className="text-slate-700 font-bold">Email Address</FormLabel>
+                                <FormControl>
+                                  <div className="relative group">
+                                    <Mail className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                                    <Input placeholder="name@example.com" className="pl-10 h-11 border-slate-200 focus:ring-primary/20" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={loginForm.control}
+                            name="password"
+                            render={({ field }) => (
+                              <FormItem className="space-y-1.5">
+                                <div className="flex justify-between items-center">
+                                  <FormLabel className="text-slate-700 font-bold">Password</FormLabel>
+                                  <Button variant="link" className="text-xs h-auto p-0 font-bold text-primary" type="button">Forgot password?</Button>
+                                </div>
+                                <FormControl>
+                                  <div className="relative group">
+                                    <Lock className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                                    <Input type="password" placeholder="••••••••" className="pl-10 h-11 border-slate-200 focus:ring-primary/20" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <Button type="submit" className="w-full h-12 mt-4 font-black text-base shadow-lg shadow-primary/25 hover:shadow-primary/35 transition-all" disabled={login.isPending}>
+                            {login.isPending ? "Signing in..." : (
+                              <span className="flex items-center gap-2">
+                                Sign In <ArrowRight className="w-4 h-4" />
+                              </span>
+                            )}
+                          </Button>
+                        </form>
+                      </Form>
+                    </TabsContent>
+
+                    <TabsContent value="register" className="mt-0 outline-none">
+                      <Form {...registerForm}>
+                        <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-5">
+                          <FormField
+                            control={registerForm.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem className="space-y-1.5">
+                                <FormLabel className="text-slate-700 font-bold">Full Name</FormLabel>
+                                <FormControl>
+                                  <div className="relative group">
+                                    <User className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                                    <Input placeholder="John Doe" className="pl-10 h-11 border-slate-200 focus:ring-primary/20" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={registerForm.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem className="space-y-1.5">
+                                <FormLabel className="text-slate-700 font-bold">Email Address</FormLabel>
+                                <FormControl>
+                                  <div className="relative group">
+                                    <Mail className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                                    <Input placeholder="name@example.com" className="pl-10 h-11 border-slate-200 focus:ring-primary/20" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={registerForm.control}
+                            name="password"
+                            render={({ field }) => (
+                              <FormItem className="space-y-1.5">
+                                <FormLabel className="text-slate-700 font-bold">Password</FormLabel>
+                                <FormControl>
+                                  <div className="relative group">
+                                    <Lock className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                                    <Input type="password" placeholder="••••••••" className="pl-10 h-11 border-slate-200 focus:ring-primary/20" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <Button type="submit" className="w-full h-12 mt-4 font-black text-base shadow-lg shadow-primary/25 hover:shadow-primary/35 transition-all" disabled={register.isPending}>
+                            {register.isPending ? "Creating account..." : (
+                              <span className="flex items-center gap-2">
+                                Create Account <ArrowRight className="w-4 h-4" />
+                              </span>
+                            )}
+                          </Button>
+                        </form>
+                      </Form>
+                    </TabsContent>
+                  </motion.div>
+                </AnimatePresence>
+              </Tabs>
+
+              <div className="mt-8 pt-6 border-t border-slate-100">
+                <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Official Preparation Partner</p>
+                <div className="flex justify-center gap-6 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+                  <div className="bg-slate-200 h-8 w-24 rounded flex items-center justify-center font-black text-[10px] text-slate-500">VID ZIMBABWE</div>
+                  <div className="bg-slate-200 h-8 w-24 rounded flex items-center justify-center font-black text-[10px] text-slate-500">TSC ZIMBABWE</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );

@@ -2,8 +2,17 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
 import NotFound from "@/pages/not-found";
+import React from "react";
+
+// Mobile API Configuration
+// Automatically determine the backend URL based on the current hostname
+const apiIp = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'localhost'
+  : window.location.hostname;
+
+setBaseUrl(`http://${apiIp}:8080`);
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import Home from "@/pages/Home";
@@ -20,35 +29,78 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import ManageQuestions from "@/pages/admin/ManageQuestions";
 import ManageUsers from "@/pages/admin/ManageUsers";
 
+// Simple Error Boundary
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex h-screen w-full items-center justify-center bg-background p-4 text-center">
+          <div className="max-w-md space-y-4">
+            <h1 className="text-2xl font-bold text-destructive">Something went wrong</h1>
+            <p className="text-muted-foreground">The application encountered an unexpected error. Please try refreshing the page.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium"
+            >
+              Refresh Application
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Register the API auth token getter
 setAuthTokenGetter(() => localStorage.getItem("vid_token"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route>
-        <AppLayout>
-          <Switch>
-            <Route path="/dashboard" component={Dashboard} />
-            <Route path="/test" component={TestPage} />
-            <Route path="/test/:sessionId/results" component={TestResults} />
-            <Route path="/history" component={History} />
-            <Route path="/signs" component={Signs} />
-            <Route path="/questions" component={Questions} />
-            <Route path="/bookmarks" component={Bookmarks} />
-            <Route path="/leaderboard" component={Leaderboard} />
-            <Route path="/progress" component={Progress} />
-            <Route path="/admin" component={AdminDashboard} />
-            <Route path="/admin/questions" component={ManageQuestions} />
-            <Route path="/admin/users" component={ManageUsers} />
-            <Route component={NotFound} />
-          </Switch>
-        </AppLayout>
-      </Route>
-    </Switch>
+    <ErrorBoundary>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route>
+          <AppLayout>
+            <ErrorBoundary>
+              <Switch>
+                <Route path="/dashboard" component={Dashboard} />
+                <Route path="/test" component={TestPage} />
+                <Route path="/test/:sessionId/results" component={TestResults} />
+                <Route path="/history" component={History} />
+                <Route path="/signs" component={Signs} />
+                <Route path="/questions" component={Questions} />
+                <Route path="/bookmarks" component={Bookmarks} />
+                <Route path="/leaderboard" component={Leaderboard} />
+                <Route path="/progress" component={Progress} />
+                <Route path="/admin" component={AdminDashboard} />
+                <Route path="/admin/questions" component={ManageQuestions} />
+                <Route path="/admin/users" component={ManageUsers} />
+                <Route component={NotFound} />
+              </Switch>
+            </ErrorBoundary>
+          </AppLayout>
+        </Route>
+      </Switch>
+    </ErrorBoundary>
   );
 }
 

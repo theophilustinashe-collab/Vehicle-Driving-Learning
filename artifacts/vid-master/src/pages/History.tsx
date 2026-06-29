@@ -1,8 +1,9 @@
 import { useGetTestHistory } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, XCircle, Clock, Calendar } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Calendar, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 
 export default function History() {
   const { data: history, isLoading } = useGetTestHistory();
@@ -19,10 +20,17 @@ export default function History() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Test History</h1>
-        <p className="text-muted-foreground mt-1">Review your past performance and track improvements.</p>
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
+      <div className="flex items-center gap-4">
+        <Link href="/dashboard">
+          <Button variant="ghost" size="icon" className="hidden lg:flex">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Test History</h1>
+          <p className="text-muted-foreground mt-1">Review your past performance and track improvements.</p>
+        </div>
       </div>
 
       {!history || history.length === 0 ? (

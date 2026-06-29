@@ -1,8 +1,9 @@
 import { useGetAdminStats } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, FileQuestion, Activity, Target } from "lucide-react";
+import { Users, FileQuestion, Activity, Target, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useGetAdminStats();
@@ -21,10 +22,17 @@ export default function AdminDashboard() {
   if (!stats) return null;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Platform Administration</h1>
-        <p className="text-muted-foreground mt-1">System overview and management controls.</p>
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+      <div className="flex items-center gap-4">
+        <Link href="/dashboard">
+          <Button variant="ghost" size="icon" className="hidden lg:flex">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Platform Administration</h1>
+          <p className="text-muted-foreground mt-1">System overview and management controls.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

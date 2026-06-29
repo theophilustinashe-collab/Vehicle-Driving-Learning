@@ -141,7 +141,7 @@ export default function TestPage() {
                 <Label htmlFor="timed" className="cursor-pointer flex-1">
                   <div className="font-semibold text-base mb-1">Timed Mock Exam</div>
                   <div className="text-sm text-muted-foreground">
-                    25 questions, 8 minutes. Simulates the real VID exam conditions. Pass mark is 60%.
+                    25 questions, 8 minutes. Simulates the real VID exam conditions. Pass mark is 100%.
                   </div>
                 </Label>
               </div>

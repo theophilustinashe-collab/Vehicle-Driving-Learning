@@ -5,9 +5,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Bookmark, BookmarkCheck, ChevronDown, CheckCircle2 } from "lucide-react";
+import { Bookmark, BookmarkCheck, ChevronDown, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 
 export default function Questions() {
   const [category, setCategory] = useState<string>("all");
@@ -29,7 +30,7 @@ export default function Questions() {
   const handleBookmarkToggle = (questionId: number) => {
     if (bookmarkedIds.has(questionId)) {
       removeBookmark.mutate(
-        { id: questionId },
+        { questionId },
         {
           onSuccess: () => {
             toast({ title: "Removed from bookmarks" });
@@ -49,11 +50,18 @@ export default function Questions() {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Question Bank</h1>
-          <p className="text-muted-foreground mt-1">Browse and study all official curriculum questions.</p>
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
+      <div className="flex items-center gap-4">
+        <Link href="/dashboard">
+          <Button variant="ghost" size="icon" className="hidden lg:flex">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        </Link>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Question Bank</h1>
+            <p className="text-muted-foreground mt-1">Browse and study all official curriculum questions.</p>
+          </div>
         </div>
       </div>
 

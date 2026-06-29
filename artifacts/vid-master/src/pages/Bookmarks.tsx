@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookmarkMinus, CheckCircle2 } from "lucide-react";
+import { BookmarkMinus, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 
@@ -14,7 +14,7 @@ export default function Bookmarks() {
 
   const handleRemove = (questionId: number) => {
     removeBookmark.mutate(
-      { id: questionId },
+      { questionId },
       {
         onSuccess: () => {
           toast({ title: "Removed from bookmarks" });
@@ -36,10 +36,17 @@ export default function Bookmarks() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Saved Questions</h1>
-        <p className="text-muted-foreground mt-1">Questions you've bookmarked for special revision.</p>
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
+      <div className="flex items-center gap-4">
+        <Link href="/dashboard">
+          <Button variant="ghost" size="icon" className="hidden lg:flex">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Saved Questions</h1>
+          <p className="text-muted-foreground mt-1">Questions you've bookmarked for special revision.</p>
+        </div>
       </div>
 
       {!bookmarks || bookmarks.length === 0 ? (

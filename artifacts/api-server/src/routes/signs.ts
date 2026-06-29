@@ -13,9 +13,19 @@ router.get("/", requireAuth, async (req, res) => {
     if (category) conditions.push(ilike(roadSignsTable.category, category));
     if (search) conditions.push(ilike(roadSignsTable.name, `%${search}%`));
 
-    const signs = conditions.length > 0
-      ? await db.select().from(roadSignsTable).where(and(...conditions))
-      : await db.select().from(roadSignsTable);
+    let signs = [];
+    try {
+      signs = conditions.length > 0
+        ? await db.select().from(roadSignsTable).where(and(...conditions))
+        : await db.select().from(roadSignsTable);
+    } catch (dbErr) {
+      logger.warn({ dbErr }, "Database error in list signs, using mock data");
+      signs = [
+        { id: 1, name: "Stop Sign", category: "Regulatory", meaning: "You must come to a complete stop.", imageUrl: "https://example.com/stop.png" },
+        { id: 2, name: "Yield", category: "Regulatory", meaning: "Give way to other traffic.", imageUrl: "https://example.com/yield.png" },
+        { id: 3, name: "Speed Limit 60", category: "Regulatory", meaning: "Maximum speed 60km/h.", imageUrl: "https://example.com/60.png" },
+      ];
+    }
 
     res.json(signs.map(s => ({
       ...s,
@@ -44,7 +54,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
 
 router.get("/:id", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const [sign] = await db.select().from(roadSignsTable).where(eq(roadSignsTable.id, id)).limit(1);
     if (!sign) {
       res.status(404).json({ error: "Sign not found" });

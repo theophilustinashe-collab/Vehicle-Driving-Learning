@@ -2,7 +2,9 @@ import { useGetUserStats, useGetCategoryBreakdown } from "@workspace/api-client-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
-import { Target, Activity, CheckSquare, Layers } from "lucide-react";
+import { Target, Activity, CheckSquare, Layers, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 export default function Progress() {
   const { data: stats, isLoading: statsLoading } = useGetUserStats();
@@ -34,10 +36,17 @@ export default function Progress() {
   })) || [];
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Detailed Analytics</h1>
-        <p className="text-muted-foreground mt-1">Deep dive into your performance metrics.</p>
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+      <div className="flex items-center gap-4">
+        <Link href="/dashboard">
+          <Button variant="ghost" size="icon" className="hidden lg:flex">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Detailed Analytics</h1>
+          <p className="text-muted-foreground mt-1">Deep dive into your performance metrics.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
