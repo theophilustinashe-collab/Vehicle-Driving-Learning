@@ -8,7 +8,8 @@
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
     "dev": "node ./scripts/dev.mjs",
     "mobile:android": "pnpm --filter @workspace/vid-master run mobile:open:android",
-    "mobile:sync": "pnpm --filter @workspace/vid-master run mobile:sync"
+    "mobile:sync": "pnpm --filter @workspace/vid-master run mobile:sync",
+    "setup:windows": "setup_windows.bat"
   },
   "private": true,
   "devDependencies": {

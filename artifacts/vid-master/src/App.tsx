@@ -20,7 +20,7 @@ let apiUrl = (import.meta.env.VITE_API_URL as string);
 
 // Logic: Use Render URL by default, fallback to Local IP only if we are specifically on a local network/dev mode
 if (!apiUrl) {
-  if (isLocal && process.env.NODE_ENV === 'development') {
+  if (isLocal && import.meta.env.DEV) {
     const host = (!window.location.hostname || window.location.hostname === 'localhost') ? computerIp : window.location.hostname;
     apiUrl = `http://${host}:8080`;
   } else {
