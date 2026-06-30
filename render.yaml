@@ -19,7 +19,7 @@ services:
   # Frontend Web App (Static Site)
   - type: static
     name: vid-master-web
-    buildCommand: corepack enable && pnpm install && pnpm run build
+    buildCommand: corepack enable && pnpm install && pnpm --filter @workspace/vid-master build
     publishDir: ./artifacts/vid-master/dist/public
     envVars:
       - key: VITE_API_URL
