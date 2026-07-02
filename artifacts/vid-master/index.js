@@ -22,6 +22,7 @@ function App() {
 
   // Default fallback to your known IP
   const hardcodedIp = '192.168.1.63';
+  const renderUrl = 'https://vid-master-web.onrender.com'; // Your production URL
 
   // Detect the IP address Expo is currently using
   const expoIp = Constants.expoConfig?.hostUri?.split(':')[0] ||
@@ -32,7 +33,9 @@ function App() {
 
   // You can change this if your dev server runs on a different port
   const devPort = 3001;
-  const devServerUrl = `http://${ipToUse}:${devPort}`;
+
+  // Use Render URL in production, Local IP in development
+  const devServerUrl = __DEV__ ? `http://${ipToUse}:${devPort}` : renderUrl;
 
   return (
     <SafeAreaProvider>
