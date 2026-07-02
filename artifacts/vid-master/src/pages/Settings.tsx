@@ -42,7 +42,12 @@ export default function SettingsPage() {
 
   const updateProfile = useMutation({
     mutationFn: async (data: z.infer<typeof profileSchema>) => {
-      const response = await fetch(`${(window as any).apiUrl || "http://localhost:8080"}/api/auth/profile`, {
+      const baseUrl = (window as any).apiUrl ||
+                     (window.location.hostname === 'localhost' ? 'http://localhost:8080' : `http://${window.location.hostname}:8080`);
+
+      console.log(`[Settings] Updating profile at: ${baseUrl}/api/auth/profile`);
+
+      const response = await fetch(`${baseUrl}/api/auth/profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -52,8 +57,8 @@ export default function SettingsPage() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update profile");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server responded with ${response.status}`);
       }
 
       return response.json();
