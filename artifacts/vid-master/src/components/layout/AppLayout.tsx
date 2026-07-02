@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 
+import logo from "../../assets/logo.png";
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -98,8 +100,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       )}>
         <div className="p-6 border-b border-sidebar-border flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
-            <div className="bg-sidebar-primary text-sidebar-primary-foreground p-2 rounded-md shadow-sm">
-              <Signpost className="w-6 h-6" />
+            <div className="bg-white p-0 overflow-hidden rounded-md shadow-sm w-10 h-10 flex items-center justify-center border border-sidebar-primary/20">
+              <img src={logo} alt="VID Master Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="font-bold text-lg leading-tight tracking-tight text-white">VID Master</h1>
@@ -211,8 +213,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             )}
-            <div className={cn("p-1.5 rounded-md bg-primary/10", !isDashboard && "hidden sm:block")}>
-              <Signpost className="w-5 h-5 text-primary" />
+            <div className={cn("p-0 overflow-hidden rounded-md bg-white border border-primary/10 w-9 h-9 flex items-center justify-center", !isDashboard && "hidden sm:block")}>
+              <img src={logo} alt="Logo" className="w-full h-full object-cover" />
             </div>
             <span className="font-bold text-lg tracking-tight truncate max-w-[180px]">
               {isDashboard ? "VID Master" : navItems.find(i => location.startsWith(i.href))?.label || "VID Master"}
