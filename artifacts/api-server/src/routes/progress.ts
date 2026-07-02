@@ -116,6 +116,7 @@ router.get("/leaderboard", requireAuth, async (req, res) => {
       rank: i + 1,
       userId: u.id,
       name: u.name,
+      city: u.city,
       xp: u.xp ?? 0,
       level: u.level ?? 1,
       accuracy: Math.round((u.passRate ?? 0) * 10) / 10,

@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Signpost, Car, ShieldCheck, Mail, Lock, User, ArrowRight, Trophy } from "lucide-react";
+import { Signpost, Car, ShieldCheck, Mail, Lock, User, ArrowRight, Trophy, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -21,6 +21,7 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
+  city: z.string().min(2, "City must be at least 2 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -44,7 +45,7 @@ export default function Home() {
 
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { name: "", email: "", city: "", password: "" },
   });
 
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
@@ -294,6 +295,22 @@ export default function Home() {
                                   <div className="relative group">
                                     <Mail className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400 group-focus-within:text-primary transition-colors" />
                                     <Input placeholder="name@example.com" className="pl-10 h-11 border-slate-200 focus:ring-primary/20" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={registerForm.control}
+                            name="city"
+                            render={({ field }) => (
+                              <FormItem className="space-y-1.5">
+                                <FormLabel className="text-slate-700 font-bold">City / Location</FormLabel>
+                                <FormControl>
+                                  <div className="relative group">
+                                    <MapPin className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                                    <Input placeholder="e.g. Harare, Bulawayo" className="pl-10 h-11 border-slate-200 focus:ring-primary/20" {...field} />
                                   </div>
                                 </FormControl>
                                 <FormMessage />

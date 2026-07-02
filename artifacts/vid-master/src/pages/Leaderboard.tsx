@@ -3,7 +3,7 @@ import { useGetLeaderboard, GetLeaderboardPeriod } from "@workspace/api-client-r
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Medal, Award, Flame, ArrowLeft } from "lucide-react";
+import { Trophy, Medal, Award, Flame, ArrowLeft, MapPin } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -86,8 +86,8 @@ export default function Leaderboard() {
                       </Avatar>
                       <div>
                         <div className="font-bold text-sm md:text-base">{entry.name}</div>
-                        <div className="text-xs text-muted-foreground md:hidden flex items-center gap-1">
-                          {entry.accuracy}% acc • {entry.totalTests} tests
+                        <div className="text-[10px] md:text-xs text-muted-foreground flex items-center gap-1">
+                          <MapPin className="w-2.5 h-2.5" /> {entry.city || "Zimbabwe"} • {entry.accuracy}% acc
                         </div>
                       </div>
                     </div>

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { PlayCircle, Award, Target, Zap, Clock, CheckCircle2, XCircle, AlertCircle, Trophy, Medal, Flame, History as HistoryIcon, Signpost, BookOpen } from "lucide-react";
+import { PlayCircle, Award, Target, Zap, Clock, CheckCircle2, XCircle, AlertCircle, Trophy, Medal, Flame, History as HistoryIcon, Signpost, BookOpen, MapPin } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -233,7 +233,9 @@ export default function Dashboard() {
                         </Avatar>
                         <div>
                           <p className="text-xs font-bold truncate max-w-[80px]">{entry.name}</p>
-                          <p className="text-[9px] text-muted-foreground uppercase font-black">Lv {entry.level}</p>
+                          <p className="text-[9px] text-muted-foreground uppercase font-black flex items-center gap-0.5">
+                            <MapPin className="w-2 h-2" /> {entry.city || "ZIM"} • Lv {entry.level}
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">

@@ -9,7 +9,7 @@ const router = Router();
 
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, city } = req.body;
     if (!email || !password || !name) {
       res.status(400).json({ error: "email, password, and name are required" });
       return;
@@ -31,6 +31,7 @@ router.post("/register", async (req, res) => {
         email: email.toLowerCase(),
         passwordHash,
         name,
+        city,
         role: "learner",
         xp: 0,
         level: 1,
@@ -40,7 +41,7 @@ router.post("/register", async (req, res) => {
       user = dbUser;
     } catch (dbErr) {
       logger.warn({ dbErr }, "Database error in register, using mock user");
-      user = { id: 999, email: email.toLowerCase(), name, role: "learner", xp: 0, level: 1, streak: 0, totalTests: 0, createdAt: new Date() };
+      user = { id: 999, email: email.toLowerCase(), name, city, role: "learner", xp: 0, level: 1, streak: 0, totalTests: 0, createdAt: new Date() };
     }
 
     const token = signToken({ userId: user.id, role: user.role as "learner" | "admin" });
