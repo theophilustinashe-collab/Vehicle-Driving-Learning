@@ -4,6 +4,7 @@
     "slug": "vid-master",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./src/assets/logo.png",
     "userInterfaceStyle": "light",
     "updates": {
       "enabled": false
