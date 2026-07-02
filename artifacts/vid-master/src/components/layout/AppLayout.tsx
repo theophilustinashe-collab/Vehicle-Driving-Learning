@@ -136,7 +136,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         : "hover:bg-sidebar-accent/30 text-sidebar-foreground/70 hover:text-sidebar-foreground"
                     )}
                   >
-                    <Icon className={cn("w-4.5 h-4.5", isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50")} />
+                    <Icon className={cn("w-4 h-4", isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50")} />
                     {item.label}
                   </Link>
                 );
@@ -164,7 +164,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                           : "hover:bg-sidebar-accent/30 text-sidebar-foreground/70 hover:text-sidebar-foreground"
                       )}
                     >
-                      <Icon className={cn("w-4.5 h-4.5", isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50")} />
+                      <Icon className={cn("w-4 h-4", isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50")} />
                       {item.label}
                     </Link>
                   );

@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { PlayCircle, Award, Target, Zap, Clock, CheckCircle2, XCircle, AlertCircle, Trophy, Medal, Flame } from "lucide-react";
+import { PlayCircle, Award, Target, Zap, Clock, CheckCircle2, XCircle, AlertCircle, Trophy, Medal, Flame, History as HistoryIcon, Signpost, BookOpen } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
   const { data: dashboard, isLoading, error, refetch } = useGetDashboard();
@@ -39,7 +40,7 @@ export default function Dashboard() {
     );
   }
 
-  const top3 = leaderboard?.slice(0, 3) || [];
+  const top3 = Array.isArray(leaderboard) ? leaderboard.slice(0, 3) : [];
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-20">
