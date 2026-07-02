@@ -17,9 +17,9 @@ react {
         }
     }
     entryFile = resolveEntry()
-    reactNativeDir = file("${projectRoot}/../../node_modules/react-native")
-    hermesCommand = "${projectRoot}/../../node_modules/react-native/sdks/hermesc/%OS-BIN%/hermesc"
-    codegenDir = file("${projectRoot}/../../node_modules/@react-native/codegen")
+    reactNativeDir = file(new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().absolutePath)
+    hermesCommand = new File(reactNativeDir, "sdks/hermesc/%OS-BIN%/hermesc").absolutePath
+    codegenDir = file(new File(["node", "--print", "require.resolve('@react-native/codegen/package.json')"].execute(null, rootDir).text.trim()).getParentFile().absolutePath)
 
     enableBundleCompression = (findProperty('android.enableBundleCompression') ?: false).toBoolean()
     // Use Expo CLI to bundle the app, this ensures the Metro config
