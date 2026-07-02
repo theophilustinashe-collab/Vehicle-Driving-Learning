@@ -11,7 +11,7 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-6">
+      <div className="p-4 md:p-8 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Skeleton className="h-32 rounded-xl" />
           <Skeleton className="h-32 rounded-xl" />
@@ -38,14 +38,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Your Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Track your progress and get ready for the big day.</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Your Dashboard</h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-1">Track your progress and get ready for the big day.</p>
         </div>
-        <Link href="/test">
-          <Button size="lg" className="font-bold gap-2">
+        <Link href="/test" className="w-full md:w-auto">
+          <Button size="lg" className="w-full md:w-auto font-bold gap-2 shadow-lg">
             <PlayCircle className="w-5 h-5" />
             Start Mock Exam
           </Button>
