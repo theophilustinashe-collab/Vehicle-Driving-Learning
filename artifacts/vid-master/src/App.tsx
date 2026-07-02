@@ -37,6 +37,7 @@ if (!apiUrl) {
 }
 
 console.log(`[VID Master] API URL set to: ${apiUrl}`);
+(window as any).apiUrl = apiUrl;
 setBaseUrl(apiUrl);
 
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -50,6 +51,7 @@ import Questions from "@/pages/Questions";
 import Bookmarks from "@/pages/Bookmarks";
 import Leaderboard from "@/pages/Leaderboard";
 import Progress from "@/pages/Progress";
+import SettingsPage from "@/pages/Settings";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import ManageQuestions from "@/pages/admin/ManageQuestions";
 import ManageUsers from "@/pages/admin/ManageUsers";
@@ -116,6 +118,7 @@ function Router() {
                 <Route path="/bookmarks" component={Bookmarks} />
                 <Route path="/leaderboard" component={Leaderboard} />
                 <Route path="/progress" component={Progress} />
+                <Route path="/settings" component={SettingsPage} />
                 <Route path="/admin" component={AdminDashboard} />
                 <Route path="/admin/questions" component={ManageQuestions} />
                 <Route path="/admin/users" component={ManageUsers} />

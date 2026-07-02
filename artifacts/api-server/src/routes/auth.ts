@@ -121,6 +121,37 @@ router.get("/me", requireAuth, async (req, res) => {
   }
 });
 
+router.patch("/profile", requireAuth, async (req, res) => {
+  try {
+    const { userId } = (req as typeof req & { user: { userId: number } }).user;
+    const { name, city } = req.body;
+
+    if (!name && !city) {
+      res.status(400).json({ error: "name or city is required" });
+      return;
+    }
+
+    const updateData: any = {};
+    if (name) updateData.name = name;
+    if (city) updateData.city = city;
+
+    const [updatedUser] = await db.update(usersTable)
+      .set(updateData)
+      .where(eq(usersTable.id, userId))
+      .returning();
+
+    if (!updatedUser) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.json(sanitizeUser(updatedUser as any));
+  } catch (err) {
+    logger.error({ err }, "Update profile error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 function sanitizeUser(user: typeof usersTable.$inferSelect) {
   const { passwordHash: _ph, ...safe } = user;
   return {

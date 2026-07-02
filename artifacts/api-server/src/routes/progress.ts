@@ -87,7 +87,11 @@ router.get("/dashboard", requireAuth, async (req, res) => {
     const accuracy = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
     const examReadiness = Math.min(100, accuracy * 0.7 + Math.min(sessions.length * 2, 30));
     const weeklyActivity = getWeeklyActivity(sessions);
-    const rank = getRank(user.level ?? 1);
+    const rankLabel = getRank(user.level ?? 1);
+
+    // Calculate numeric rank from leaderboard
+    const allUsers = await db.select({ id: usersTable.id }).from(usersTable).orderBy(desc(usersTable.xp));
+    const numericRank = allUsers.findIndex(u => u.id === userId) + 1;
 
     res.json({
       recentTests,
@@ -97,7 +101,8 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       totalTests: user.totalTests ?? 0,
       xp: user.xp ?? 0,
       level: user.level ?? 1,
-      rank,
+      rank: rankLabel,
+      numericRank,
       weeklyActivity,
     });
   } catch (err) {

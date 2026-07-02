@@ -73,6 +73,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
     { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
     { label: "Progress", href: "/progress", icon: BarChart },
+    { label: "Settings", href: "/settings", icon: Settings },
   ];
 
   const adminItems = [
