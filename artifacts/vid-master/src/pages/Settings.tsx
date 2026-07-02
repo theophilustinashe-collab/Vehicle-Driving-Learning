@@ -42,12 +42,16 @@ export default function SettingsPage() {
 
   const updateProfile = useMutation({
     mutationFn: async (data: z.infer<typeof profileSchema>) => {
+      // Use the global URL set in App.tsx, which handles local/prod logic
       const baseUrl = (window as any).apiUrl ||
-                     (window.location.hostname === 'localhost' ? 'http://localhost:8080' : `http://${window.location.hostname}:8080`);
+                     `http://${window.location.hostname || 'localhost'}:8080`;
 
-      console.log(`[Settings] Updating profile at: ${baseUrl}/api/auth/profile`);
+      const cleanBaseUrl = baseUrl.replace(/\/$/, "");
+      const fullUrl = `${cleanBaseUrl}/api/auth/profile`;
 
-      const response = await fetch(`${baseUrl}/api/auth/profile`, {
+      console.log(`[Settings] Updating profile at: ${fullUrl}`);
+
+      const response = await fetch(fullUrl, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -58,7 +62,7 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Server responded with ${response.status}`);
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
 
       return response.json();
