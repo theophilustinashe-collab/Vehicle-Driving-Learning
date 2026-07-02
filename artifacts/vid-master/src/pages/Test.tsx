@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Clock, AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import type { TestSession, AnswerInput } from "@workspace/api-client-react";
 
 export default function TestPage() {
@@ -177,80 +178,86 @@ export default function TestPage() {
   const isTimeLow = timeLeft !== null && timeLeft <= 60;
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto min-h-screen flex flex-col">
-      <div className="flex items-center justify-between mb-6 bg-card p-4 rounded-lg shadow-sm border">
-        <div className="flex flex-col">
-          <span className="text-sm font-medium text-muted-foreground">Question {currentQuestionIndex + 1} of {session.questions.length}</span>
-          <div className="w-48 mt-2">
-            <Progress value={progress} className="h-2" />
+    <div className="p-2 md:p-6 max-w-4xl mx-auto h-[calc(100vh-160px)] lg:h-auto flex flex-col gap-2">
+      <div className="flex items-center justify-between bg-card p-3 rounded-xl shadow-sm border sticky top-0 z-10">
+        <div className="flex flex-col flex-1">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Question {currentQuestionIndex + 1}/{session.questions.length}</span>
+            <span className="text-xs font-bold text-primary">{Math.round(progress)}%</span>
           </div>
+          <Progress value={progress} className="h-1.5" />
         </div>
         
         {timeLeft !== null && (
-          <div className={`flex items-center gap-2 font-mono text-xl font-bold px-4 py-2 rounded-md ${isTimeLow ? 'bg-destructive/10 text-destructive animate-pulse' : 'bg-primary/10 text-primary'}`}>
-            <Clock className="w-5 h-5" />
+          <div className={`ml-4 flex items-center gap-1.5 font-mono text-lg font-black px-3 py-1.5 rounded-lg border-2 ${isTimeLow ? 'bg-destructive/10 border-destructive/50 text-destructive animate-pulse' : 'bg-primary/5 border-primary/20 text-primary'}`}>
+            <Clock className="w-4 h-4" />
             {formatTime(timeLeft)}
           </div>
         )}
       </div>
 
-      <Card className="flex-1 shadow-md border-t-4 border-t-primary">
-        <CardContent className="p-6 md:p-10 flex flex-col h-full">
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-secondary/20 text-secondary-foreground text-xs font-bold uppercase tracking-wider mb-4">
-              {currentQuestion.category}
-            </div>
-            <h2 className="text-xl md:text-2xl font-semibold leading-relaxed">
-              {currentQuestion.text}
-            </h2>
-            {currentQuestion.imageUrl && (
-              <div className="mt-6 rounded-lg overflow-hidden border">
-                <img src={currentQuestion.imageUrl} alt="Question figure" className="max-h-64 w-auto object-contain bg-muted" />
+      <Card className="flex-1 shadow-md border-0 ring-1 ring-border overflow-hidden flex flex-col">
+        <CardContent className="p-4 md:p-8 flex flex-col h-full overflow-hidden">
+          <div className="flex-1 overflow-y-auto pr-1 -mr-1 custom-scrollbar">
+            <div className="mb-4">
+              <div className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-secondary/20 text-secondary-foreground text-[10px] font-black uppercase tracking-widest mb-2 border border-secondary/30">
+                {currentQuestion.category}
               </div>
-            )}
-          </div>
-
-          <div className="space-y-3 flex-1">
-            {currentQuestion.options.map((option, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
-                className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-start gap-4 ${
-                  answers[currentQuestion.id] === idx 
-                    ? 'border-primary bg-primary/5 shadow-sm' 
-                    : 'border-muted hover:border-primary/50 hover:bg-muted/50'
-                }`}
-              >
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
-                  answers[currentQuestion.id] === idx ? 'border-primary' : 'border-muted-foreground/30'
-                }`}>
-                  {answers[currentQuestion.id] === idx && <div className="w-3 h-3 bg-primary rounded-full" />}
+              <h2 className="text-lg md:text-xl font-bold leading-snug text-foreground">
+                {currentQuestion.text}
+              </h2>
+              {currentQuestion.imageUrl && (
+                <div className="mt-3 rounded-xl overflow-hidden border bg-muted/30 shadow-inner">
+                  <img src={currentQuestion.imageUrl} alt="Question figure" className="max-h-40 md:max-h-64 w-full object-contain mx-auto" />
                 </div>
-                <span className="text-base font-medium">{option}</span>
-              </button>
-            ))}
+              )}
+            </div>
+
+            <div className="space-y-2 pb-4">
+              {currentQuestion.options.map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
+                  className={cn(
+                    "w-full text-left p-3.5 rounded-xl border-2 transition-all duration-200 flex items-start gap-3",
+                    answers[currentQuestion.id] === idx
+                      ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
+                      : "border-muted bg-card hover:border-primary/30 hover:bg-muted/50"
+                  )}
+                >
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors",
+                    answers[currentQuestion.id] === idx ? "border-primary bg-primary" : "border-muted-foreground/30"
+                  )}>
+                    {answers[currentQuestion.id] === idx && <div className="w-2 h-2 bg-white rounded-full" />}
+                  </div>
+                  <span className="text-sm md:text-base font-bold leading-tight">{option}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-center justify-between mt-10 pt-6 border-t">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t bg-card">
             <Button 
               variant="outline" 
               onClick={handlePrevious} 
               disabled={currentQuestionIndex === 0}
+              className="font-bold border-2"
             >
               Previous
             </Button>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {isLastQuestion ? (
                 <Button 
                   onClick={handleSubmit} 
                   disabled={submitTest.isPending}
-                  className="bg-emerald-600 hover:bg-emerald-700"
+                  className="bg-emerald-600 hover:bg-emerald-700 font-bold px-6 shadow-lg shadow-emerald-500/20"
                 >
-                  {submitTest.isPending ? "Submitting..." : "Submit Exam"}
+                  {submitTest.isPending ? "Submitting..." : "Finish Exam"}
                 </Button>
               ) : (
-                <Button onClick={handleNext} className="gap-2">
+                <Button onClick={handleNext} className="gap-2 font-bold px-6 shadow-lg shadow-primary/20">
                   Next <ArrowRight className="w-4 h-4" />
                 </Button>
               )}
