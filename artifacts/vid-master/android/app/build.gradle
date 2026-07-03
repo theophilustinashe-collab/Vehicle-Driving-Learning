@@ -17,8 +17,9 @@ react {
         }
     }
     entryFile = resolveEntry()
-    reactNativeDir = file(new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().absolutePath)
-    hermesCommand = new File(reactNativeDir, "sdks/hermesc/%OS-BIN%/hermesc").absolutePath
+    def reactNativePath = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().absolutePath
+    reactNativeDir = file(reactNativePath)
+    hermesCommand = new File(reactNativePath, "sdks/hermesc/%OS-BIN%/hermesc").absolutePath
     codegenDir = file(new File(["node", "--print", "require.resolve('@react-native/codegen/package.json')"].execute(null, rootDir).text.trim()).getParentFile().absolutePath)
 
     enableBundleCompression = (findProperty('android.enableBundleCompression') ?: false).toBoolean()
