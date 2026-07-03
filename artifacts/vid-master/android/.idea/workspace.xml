@@ -5,15 +5,36 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a24fbbf3-9b96-441e-8e83-dceba08f5ebd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/admin.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/admin.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/pages/Support.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/add_barrier_sign.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/add_curriculum_signs.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/add_missing_curriculum.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/add_more_questions.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/cleanup_signs.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/list_users.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/promote_admin.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/seed_split_signs.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/app.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/app.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/progress.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/progress.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/signs.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/signs.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/layout/AppLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/layout/AppLayout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/lib/offline.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/lib/offline.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Home.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Home.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Leaderboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Leaderboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Questions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Questions.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/Settings.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Settings.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Signs.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Signs.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/Test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Test.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/admin/ManageQuestions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/admin/ManageQuestions.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/admin/ManageSigns.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/admin/ManageSigns.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../lib/api-client-react/src/generated/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/api-client-react/src/generated/api.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../lib/api-spec/openapi.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/api-spec/openapi.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../lib/api-zod/src/generated/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/api-zod/src/generated/api.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../scripts/check_signs.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/../../../scripts/check_signs.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../scripts/seed.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/../../../scripts/seed.mjs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

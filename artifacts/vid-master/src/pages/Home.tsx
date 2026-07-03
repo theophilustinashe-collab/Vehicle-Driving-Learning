@@ -87,9 +87,21 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden relative">
+      {/* Background Image for the whole page */}
+      <div
+        className="absolute inset-0 z-0 opacity-25 pointer-events-none"
+        style={{
+          backgroundImage: `url('/login-bg.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'brightness(1.1) contrast(1.05)'
+        }}
+      />
+      <div className="absolute inset-0 z-0 bg-gradient-to-tr from-[#0f172a]/40 to-transparent pointer-events-none" />
+
       {/* Left branding panel */}
-      <div className="bg-[#0f172a] flex-1 p-8 lg:p-16 flex flex-col justify-between text-white relative overflow-hidden hidden md:flex">
+      <div className="bg-[#0f172a]/90 backdrop-blur-sm flex-1 p-8 lg:p-16 flex flex-col justify-between text-white relative overflow-hidden hidden md:flex z-10">
         <div className="absolute inset-0 opacity-20 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
           <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -181,7 +193,7 @@ export default function Home() {
       </div>
 
       {/* Right Auth Panel */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-slate-50 relative overflow-hidden">
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-slate-50/50 backdrop-blur-sm relative overflow-hidden z-10">
         {/* Background Decorations */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, testSessionsTable, usersTable, questionsTable, bookmarksTable } from "@workspace/db";
-import { eq, desc, and } from "drizzle-orm";
+import { db, testSessionsTable, usersTable, questionsTable, bookmarksTable, mistakesTable, badgesTable, userBadgesTable } from "@workspace/db";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { logger } from "../lib/logger";
 
@@ -113,15 +113,32 @@ router.get("/dashboard", requireAuth, async (req, res) => {
 
 router.get("/leaderboard", requireAuth, async (req, res) => {
   try {
-    const users = await db.select().from(usersTable)
-      .orderBy(desc(usersTable.xp))
-      .limit(20);
+    const { period = "alltime" } = req.query as Record<string, string>;
+
+    let users;
+    if (period === "alltime") {
+      users = await db.select().from(usersTable)
+        .orderBy(desc(usersTable.xp))
+        .limit(50);
+    } else {
+      const now = new Date();
+      let startDate = new Date();
+      if (period === "daily") startDate.setHours(0, 0, 0, 0);
+      else if (period === "weekly") startDate.setDate(now.getDate() - 7);
+      else if (period === "monthly") startDate.setMonth(now.getMonth() - 1);
+      else startDate.setFullYear(2000);
+
+      users = await db.select().from(usersTable)
+        .where(sql`${usersTable.lastActiveAt} > ${startDate}`)
+        .orderBy(desc(usersTable.xp))
+        .limit(50);
+    }
 
     const entries = users.map((u, i) => ({
       rank: i + 1,
       userId: u.id,
       name: u.name,
-      city: u.city,
+      city: u.city || "Zimbabwe",
       xp: u.xp ?? 0,
       level: u.level ?? 1,
       accuracy: Math.round((u.passRate ?? 0) * 10) / 10,
@@ -147,7 +164,6 @@ router.get("/category-breakdown", requireAuth, async (req, res) => {
       return;
     }
 
-    const questionIds = [...new Set(allAnswers.map(a => a.questionId))];
     const questions = await db.select().from(questionsTable)
       .where(eq(questionsTable.status, "published"));
 
@@ -162,8 +178,6 @@ router.get("/category-breakdown", requireAuth, async (req, res) => {
       if (answer.isCorrect) catStats[q.category].correct++;
     }
 
-    void questionIds;
-
     const result = Object.entries(catStats).map(([category, stats]) => ({
       category,
       total: stats.total,
@@ -174,6 +188,62 @@ router.get("/category-breakdown", requireAuth, async (req, res) => {
     res.json(result);
   } catch (err) {
     logger.error({ err }, "Get category breakdown error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/mistakes", requireAuth, async (req, res) => {
+  try {
+    const { userId } = (req as typeof req & { user: { userId: number } }).user;
+    const mistakes = await db.select()
+      .from(mistakesTable)
+      .where(eq(mistakesTable.userId, userId))
+      .orderBy(desc(mistakesTable.incorrectCount));
+
+    if (mistakes.length === 0) {
+      res.json([]);
+      return;
+    }
+
+    const qIds = mistakes.map(m => m.questionId);
+    const questions = await db.select().from(questionsTable)
+      .where(and(eq(questionsTable.status, "published"), inArray(questionsTable.id, qIds)));
+
+    const result = questions.map(q => {
+      const m = mistakes.find(mistake => mistake.questionId === q.id);
+      return {
+        ...q,
+        incorrectCount: m?.incorrectCount || 1,
+        lastAttemptedAt: m?.lastAttemptedAt || new Date().toISOString(),
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    logger.error({ err }, "Get mistakes error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/badges", requireAuth, async (req, res) => {
+  try {
+    const { userId } = (req as typeof req & { user: { userId: number } }).user;
+
+    const [allBadges, userEarned] = await Promise.all([
+      db.select().from(badgesTable),
+      db.select({ badgeId: userBadgesTable.badgeId }).from(userBadgesTable).where(eq(userBadgesTable.userId, userId))
+    ]);
+
+    const earnedIds = new Set(userEarned.map(u => u.badgeId));
+
+    const result = allBadges.map(b => ({
+      ...b,
+      earned: earnedIds.has(b.id)
+    }));
+
+    res.json(result);
+  } catch (err) {
+    logger.error({ err }, "Get badges error");
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -192,9 +262,9 @@ router.get("/bookmarks", requireAuth, async (req, res) => {
 
     const qIds = bookmarks.map(b => b.questionId);
     const questions = await db.select().from(questionsTable)
-      .where(eq(questionsTable.status, "published"));
+      .where(and(eq(questionsTable.status, "published"), inArray(questionsTable.id, qIds)));
 
-    const filtered = questions.filter(q => qIds.includes(q.id)).map(q => ({
+    const filtered = questions.map(q => ({
       ...q,
       options: q.options as string[],
       createdAt: q.createdAt?.toISOString() ?? new Date().toISOString(),

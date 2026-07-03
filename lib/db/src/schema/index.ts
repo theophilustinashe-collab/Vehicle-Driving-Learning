@@ -4,3 +4,4 @@ export * from "./testSessions";
 export * from "./roadSigns";
 export * from "./bookmarks";
 export * from "./badges";
+export * from "./mistakes";

@@ -75,4 +75,47 @@ router.get("/:id", requireAuth, async (req, res) => {
   }
 });
 
+router.patch("/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    const { name, category, meaning, imageUrl, usage } = req.body;
+
+    logger.info({ id, hasImage: !!imageUrl }, "Updating sign");
+
+    const [updated] = await db.update(roadSignsTable)
+      .set({
+        name,
+        category,
+        meaning,
+        imageUrl,
+        usage
+      })
+      .where(eq(roadSignsTable.id, id))
+      .returning();
+
+    if (!updated) {
+      logger.warn({ id }, "Sign not found for update");
+      res.status(404).json({ error: "Sign not found" });
+      return;
+    }
+
+    logger.info({ id }, "Sign updated successfully");
+    res.json({ ...updated, createdAt: undefined });
+  } catch (err) {
+    logger.error({ err, id: req.params.id }, "Update sign error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    await db.delete(roadSignsTable).where(eq(roadSignsTable.id, id));
+    res.json({ success: true });
+  } catch (err) {
+    logger.error({ err }, "Delete sign error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;

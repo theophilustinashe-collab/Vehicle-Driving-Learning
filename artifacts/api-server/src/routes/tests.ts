@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, questionsTable, testSessionsTable, usersTable } from "@workspace/db";
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { db, questionsTable, testSessionsTable, usersTable, mistakesTable } from "@workspace/db";
+import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import { requireAuth } from "../middlewares/auth";
 import { logger } from "../lib/logger";
@@ -151,6 +151,28 @@ router.post("/:sessionId/submit", requireAuth, async (req, res) => {
       status: expired ? "expired" : "completed",
       completedAt: now,
     }).where(eq(testSessionsTable.sessionId, sessionId));
+
+    // Record mistakes
+    const mistakes = answerDetails.filter(a => a && !a.isCorrect);
+    for (const m of mistakes) {
+      if (!m) continue;
+      try {
+        await db.insert(mistakesTable).values({
+          userId,
+          questionId: m.questionId,
+          incorrectCount: 1,
+          lastAttemptedAt: now,
+        }).onConflictDoUpdate({
+          target: [mistakesTable.userId, mistakesTable.questionId],
+          set: {
+            incorrectCount: sql`${mistakesTable.incorrectCount} + 1`,
+            lastAttemptedAt: now
+          },
+        });
+      } catch (err) {
+        logger.error({ err, userId, qId: m.questionId }, "Failed to record mistake");
+      }
+    }
 
     // Update user XP and stats
     const xpGain = passed ? 100 : 30;

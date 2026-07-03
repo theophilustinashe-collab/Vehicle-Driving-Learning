@@ -51,7 +51,10 @@ import Questions from "@/pages/Questions";
 import Bookmarks from "@/pages/Bookmarks";
 import Leaderboard from "@/pages/Leaderboard";
 import Progress from "@/pages/Progress";
+import MistakesPage from "@/pages/Mistakes";
+import ExamGuidePage from "@/pages/ExamGuide";
 import SettingsPage from "@/pages/Settings";
+import SupportPage from "@/pages/Support";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import ManageQuestions from "@/pages/admin/ManageQuestions";
 import ManageSigns from "@/pages/admin/ManageSigns";
@@ -119,7 +122,10 @@ function Router() {
                 <Route path="/bookmarks" component={Bookmarks} />
                 <Route path="/leaderboard" component={Leaderboard} />
                 <Route path="/progress" component={Progress} />
+                <Route path="/mistakes" component={MistakesPage} />
+                <Route path="/exam-guide" component={ExamGuidePage} />
                 <Route path="/settings" component={SettingsPage} />
+                <Route path="/support" component={SupportPage} />
                 <Route path="/admin" component={AdminDashboard} />
                 <Route path="/admin/questions" component={ManageQuestions} />
                 <Route path="/admin/signs" component={ManageSigns} />

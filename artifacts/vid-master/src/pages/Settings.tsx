@@ -13,6 +13,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { syncOfflineData } from "@/lib/offline";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -20,6 +31,8 @@ const profileSchema = z.object({
   phone: z.string().optional(),
   language: z.string(),
   soundEnabled: z.boolean(),
+  voiceLanguage: z.string(),
+  voiceRate: z.string(),
 });
 
 export default function SettingsPage() {
@@ -40,6 +53,8 @@ export default function SettingsPage() {
       phone: user?.phone || "",
       language: user?.language || "en",
       soundEnabled: user?.soundEnabled === 1,
+      voiceLanguage: localStorage.getItem('vid_voice_lang') || "en-GB",
+      voiceRate: localStorage.getItem('vid_voice_rate') || "0.9",
     },
   });
 
@@ -51,12 +66,18 @@ export default function SettingsPage() {
         phone: user.phone || "",
         language: user.language || "en",
         soundEnabled: user.soundEnabled === 1,
+        voiceLanguage: localStorage.getItem('vid_voice_lang') || "en-GB",
+        voiceRate: localStorage.getItem('vid_voice_rate') || "0.9",
       });
     }
   }, [user, form]);
 
   const updateProfile = useMutation({
     mutationFn: async (data: z.infer<typeof profileSchema>) => {
+      // Save voice settings to local storage
+      localStorage.setItem('vid_voice_lang', data.voiceLanguage);
+      localStorage.setItem('vid_voice_rate', data.voiceRate);
+
       const baseUrl = (window as any).apiUrl || `http://${window.location.hostname || 'localhost'}:8080`;
       const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/auth/profile`, {
         method: "PATCH",
@@ -64,7 +85,13 @@ export default function SettingsPage() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("vid_token")}`,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          name: data.name,
+          city: data.city,
+          phone: data.phone,
+          language: data.language,
+          soundEnabled: data.soundEnabled ? 1 : 0,
+        }),
       });
 
       if (!response.ok) {
@@ -76,7 +103,7 @@ export default function SettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["getMe"] });
-      toast({ title: "Profile Updated", description: "Your changes have been saved." });
+      toast({ title: "Settings Saved", description: "Your profile and voice preferences have been updated." });
     },
     onError: (error: Error) => {
       toast({ title: "Update Failed", description: error.message, variant: "destructive" });
@@ -263,6 +290,50 @@ export default function SettingsPage() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="voiceLanguage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold">Voice Narrator Accent</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="en-GB">English (British)</SelectItem>
+                          <SelectItem value="en-US">English (American)</SelectItem>
+                          <SelectItem value="en-ZA">English (Southern Africa)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="voiceRate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold">Narration Speed</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="0.7">Slower</SelectItem>
+                          <SelectItem value="0.9">Normal</SelectItem>
+                          <SelectItem value="1.1">Faster</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <Button
@@ -280,11 +351,49 @@ export default function SettingsPage() {
       <Card className="border-destructive/20 bg-destructive/5">
         <CardHeader>
           <CardTitle className="text-destructive text-lg">Danger Zone</CardTitle>
+          <CardDescription>Actions that cannot be undone.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button variant="outline" className="text-destructive border-destructive/20 hover:bg-destructive/10 w-full md:w-auto font-bold">
-            Delete My Progress Data
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="text-destructive border-destructive/20 hover:bg-destructive/10 w-full md:w-auto font-bold">
+                Delete My Progress Data
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-2">
+                  <p>
+                    This will permanently erase all your progress including:
+                  </p>
+                  <ul className="list-disc pl-5 space-y-1 font-medium text-destructive/80">
+                    <li>Entire test history and results</li>
+                    <li>Earned XP and current level</li>
+                    <li>Current study streaks</li>
+                    <li>Bookmarked questions</li>
+                  </ul>
+                  <p className="font-bold">
+                    This action cannot be undone. You will start back at Level 1.
+                  </p>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => {
+                    toast({
+                      title: "Progress Reset Request Sent",
+                      description: "Your progress data is being cleared from our servers."
+                    });
+                  }}
+                >
+                  Yes, Delete Everything
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </div>

@@ -29,10 +29,10 @@ export default function Leaderboard() {
           <div>
             <h1 className="text-2xl md:text-4xl font-black tracking-tight flex items-center gap-3">
               <Trophy className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
-              Wall of Excellence
+              Nationwide Wall of Excellence
             </h1>
             <p className="text-primary-foreground/80 mt-1 md:mt-2 font-medium text-sm md:text-base">
-              The top performers mastering the VID curriculum.
+              The top performers across Zimbabwe mastering the VID curriculum.
             </p>
           </div>
         </div>

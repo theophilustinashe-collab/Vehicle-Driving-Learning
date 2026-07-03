@@ -1,25 +1,44 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useListQuestions, useGetBookmarks, useAddBookmark, useRemoveBookmark } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Bookmark, BookmarkCheck, ChevronDown, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Bookmark, BookmarkCheck, ChevronDown, CheckCircle2, ArrowLeft, Info, WifiOff } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { getOfflineQuestions } from "@/lib/offline";
 
 export default function Questions() {
   const [category, setCategory] = useState<string>("all");
   const [difficulty, setDifficulty] = useState<string>("all");
   const { toast } = useToast();
 
-  const { data: questions, isLoading } = useListQuestions({
+  const { data: onlineQuestions, isLoading, error } = useListQuestions({
     category: category !== "all" ? category : undefined,
     difficulty: difficulty !== "all" ? difficulty : undefined,
-    limit: 50, // pagination could be added
-  });
+    limit: 500,
+  }, { query: { retry: false } });
+
+  const questions = useMemo(() => {
+    if (onlineQuestions && onlineQuestions.length > 0) return onlineQuestions;
+
+    // If offline or error, use local data
+    if (!navigator.onLine || error) {
+      const local = getOfflineQuestions();
+      if (!local.length) return [];
+
+      return local.filter(q => {
+        const matchesCategory = category === "all" || q.category.toLowerCase().includes(category.toLowerCase());
+        const matchesDifficulty = difficulty === "all" || q.difficulty === difficulty;
+        return matchesCategory && matchesDifficulty;
+      });
+    }
+
+    return onlineQuestions || [];
+  }, [onlineQuestions, error, category, difficulty]);
 
   const { data: bookmarks } = useGetBookmarks();
   const addBookmark = useAddBookmark();

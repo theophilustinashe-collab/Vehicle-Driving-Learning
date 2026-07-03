@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useStartTest, useSubmitTest, StartTestInputMode } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Clock, AlertTriangle, ArrowRight, CheckCircle2, Volume2, VolumeX, Info } from "lucide-react";
+import { Clock, AlertTriangle, ArrowRight, CheckCircle2, Volume2, VolumeX, Info, Flag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { speak, stopSpeaking } from "@/lib/voice";
 import type { TestSession, AnswerInput } from "@workspace/api-client-react";
+import { getOfflineQuestions } from "@/lib/offline";
 
 export default function TestPage() {
   const [_, setLocation] = useLocation();
@@ -29,6 +30,38 @@ export default function TestPage() {
   const [showExplanation, setShowExplanation] = useState(false);
 
   const handleStart = () => {
+    if (!navigator.onLine) {
+      const offlineQuestions = getOfflineQuestions();
+      if (!offlineQuestions.length) {
+        toast({ title: "No Offline Data", description: "Please connect to the internet once to sync questions.", variant: "destructive" });
+        return;
+      }
+
+      // Local shuffle and select 25
+      const shuffled = [...offlineQuestions].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 25);
+
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 8 * 60 * 1000);
+
+      setSession({
+        sessionId: `offline-${Date.now()}`,
+        questions: selected,
+        mode: mode,
+        startedAt: now.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        durationSeconds: 8 * 60
+      } as any);
+
+      setCurrentQuestionIndex(0);
+      setAnswers({});
+      setShowExplanation(false);
+      setTimeLeft(mode === "timed" ? 8 * 60 : null);
+
+      toast({ title: "Offline Exam Started", description: "You are practicing in offline mode." });
+      return;
+    }
+
     startTest.mutate(
       { data: { mode } },
       {
@@ -123,6 +156,32 @@ export default function TestPage() {
       questionId: parseInt(qId, 10),
       selectedAnswer: ans,
     }));
+
+    if (!navigator.onLine || session.sessionId.startsWith('offline-')) {
+      // Local scoring for offline mode
+      let score = 0;
+      const results = session.questions.map(q => {
+        const selected = answers[q.id];
+        const isCorrect = selected === q.correctAnswer;
+        if (isCorrect) score++;
+        return {
+          questionId: q.id,
+          selectedAnswer: selected,
+          correctAnswer: q.correctAnswer,
+          isCorrect,
+          explanation: q.explanation
+        };
+      });
+
+      // Save offline result locally (optional improvement)
+      toast({ title: "Offline Score", description: `You scored ${score}/${session.questions.length}` });
+
+      // We don't have a results page for offline-only yet, so we just show toast
+      // For now, let's keep it simple
+      setSession(null);
+      setLocation('/dashboard');
+      return;
+    }
 
     submitTest.mutate(
       { sessionId: session.sessionId, data: { answers: formattedAnswers } },
@@ -229,6 +288,16 @@ export default function TestPage() {
         >
           {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
         </Button>
+        <Link href={`/support?report=true&questionId=${currentQuestion.id}`}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="ml-1 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            title="Report Question"
+          >
+            <Flag className="w-4 h-4" />
+          </Button>
+        </Link>
       </div>
 
       <Card className="flex-1 shadow-md border-0 ring-1 ring-border overflow-hidden flex flex-col">

@@ -70,4 +70,7 @@ backend.log
 .build/
 .cxx/
 android/.cxx/
+android/.b/
+artifacts/vid-master/android/.b/
+artifacts/vid-master/android/.cxx/
 **/build/

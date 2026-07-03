@@ -29,12 +29,16 @@ allprojects {
 
   // Shorten build paths on Windows to avoid "Filename too long" errors
   if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-      // Redirect build directory for subprojects (especially those in node_modules)
-      // to avoid MAX_PATH issues. We use a path inside the android/ folder.
+      // Redirect build directory for subprojects to a very short path to avoid MAX_PATH issues.
+      // We use a directory in the user's home folder which is typically much shorter.
+      def userHome = System.getProperty("user.home")
       if (project != rootProject && project.name != "app") {
           def isNodeModule = projectDir.absolutePath.contains("node_modules") || projectDir.absolutePath.contains(".pnpm")
           if (isNodeModule) {
-              project.layout.buildDirectory.set(file("${rootProject.projectDir}/.build/${project.name}"))
+              def shortHash = project.name.hashCode().abs() % 10000
+              def newBuildDir = file("$userHome/.b/$shortHash")
+              project.layout.buildDirectory.set(newBuildDir)
+              project.buildDir = newBuildDir
           }
       }
   }
@@ -57,7 +61,9 @@ subprojects {
                     externalNativeBuild {
                         cmake {
                             if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-                                buildStagingDirectory = "${rootProject.projectDir}/.cxx/${project.name}"
+                                def userHome = System.getProperty("user.home")
+                                def shortHash = project.name.hashCode().abs() % 10000
+                                buildStagingDirectory = "$userHome/.c/$shortHash"
                             }
                         }
                     }

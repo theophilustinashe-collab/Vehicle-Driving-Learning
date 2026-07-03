@@ -1,16 +1,40 @@
-import { useGetDashboard, useGetLeaderboard } from "@workspace/api-client-react";
+import { useGetDashboard, useGetLeaderboard, useGetMe } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { PlayCircle, Award, Target, Zap, Clock, CheckCircle2, XCircle, AlertCircle, Trophy, Medal, Flame, History as HistoryIcon, Signpost, BookOpen, MapPin } from "lucide-react";
+import { PlayCircle, Award, Target, Zap, Clock, CheckCircle2, XCircle, AlertCircle, Trophy, Medal, Flame, History as HistoryIcon, Octagon, BookOpen, MapPin, HelpCircle, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { addDays, format, formatDistanceToNow } from "date-fns";
 
 export default function Dashboard() {
+  const { data: user } = useGetMe();
   const { data: dashboard, isLoading, error, refetch } = useGetDashboard();
   const { data: leaderboard, isLoading: isLeaderboardLoading } = useGetLeaderboard({ period: "weekly" });
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    const name = user?.name ? `, ${user.name.split(' ')[0]}` : "";
+
+    if (hour < 12) return `Good morning${name}`;
+    if (hour < 17) return `Good afternoon${name}`;
+    return `Good evening${name}`;
+  };
+
+  const getEstimatedTestDate = (readiness: number) => {
+    if (readiness >= 90) return "Ready Today!";
+
+    let daysToAdd = 30;
+    if (readiness >= 80) daysToAdd = 3;
+    else if (readiness >= 70) daysToAdd = 7;
+    else if (readiness >= 60) daysToAdd = 14;
+    else if (readiness >= 40) daysToAdd = 21;
+
+    const estimatedDate = addDays(new Date(), daysToAdd);
+    return format(estimatedDate, "do MMM yyyy");
+  };
 
   if (isLoading) {
     return (
@@ -46,7 +70,7 @@ export default function Dashboard() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Your Dashboard</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">{getGreeting()}!</h1>
           <p className="text-sm md:text-base text-muted-foreground mt-1">Track your progress and get ready for the big day.</p>
         </div>
         <Link href="/test" className="w-full md:w-auto">
@@ -66,9 +90,12 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-3xl font-black text-primary">{dashboard?.examReadiness ?? 0}%</div>
             <Progress value={dashboard?.examReadiness ?? 0} className="mt-3 h-2" />
-            <p className="text-xs text-muted-foreground mt-3 font-medium">
-              Score 90% to be fully ready
-            </p>
+            <div className="mt-4 pt-3 border-t">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estimated Test Date</p>
+              <p className="text-sm font-bold text-slate-900 mt-0.5">
+                {getEstimatedTestDate(dashboard?.examReadiness ?? 0)}
+              </p>
+            </div>
           </CardContent>
         </Card>
         
@@ -115,6 +142,102 @@ export default function Dashboard() {
               <span className="text-xs font-bold px-2 py-0.5 bg-primary/20 text-primary rounded-full uppercase tracking-tighter">{dashboard?.rank ?? "Beginner"}</span>
               <span className="text-xs font-bold text-muted-foreground tracking-widest uppercase">{dashboard?.xp ?? 0} XP</span>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Daily Challenge Section */}
+        <Card className="border-0 shadow-lg ring-1 ring-border bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-l-4 border-l-primary overflow-hidden h-full">
+          <CardContent className="p-0 h-full">
+            <div className="flex flex-col h-full">
+              <div className="p-6 flex-1 space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="bg-primary/20 p-2 rounded-lg">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-black tracking-tight">Daily Challenge</h2>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">Question of the Day</h3>
+                  <p className="text-muted-foreground text-sm">Test your knowledge with one quick question and earn +50 XP bonus!</p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-background/50 rounded-full border text-xs font-bold">
+                    <Target className="w-3.5 h-3.5 text-primary" /> High Accuracy
+                  </div>
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-background/50 rounded-full border text-xs font-bold">
+                    <Zap className="w-3.5 h-3.5 text-secondary" /> +50 XP Bonus
+                  </div>
+                </div>
+                <Link href="/questions?daily=true">
+                  <Button className="font-black gap-2 shadow-md hover:shadow-lg transition-all">
+                    Answer Now
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+              <div className="bg-primary/5 p-4 flex items-center gap-4 border-t relative overflow-hidden shrink-0">
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white shadow-sm border shrink-0">
+                  <Lightbulb className="w-5 h-5 text-amber-500" />
+                </div>
+                <p className="text-xs font-medium italic line-clamp-1">"Always signal for at least 3 seconds before changing lanes."</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Leaderboard Preview */}
+        <Card className="border-0 shadow-lg ring-1 ring-border bg-gradient-to-b from-primary/5 to-background overflow-hidden relative h-full">
+          <div className="absolute top-0 right-0 p-2 opacity-10">
+            <Trophy className="w-16 h-16" />
+          </div>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Nationwide Leaders</CardTitle>
+                <CardDescription>This week's top learners</CardDescription>
+              </div>
+              <Link href="/leaderboard">
+                <Button variant="link" className="text-xs font-bold p-0">View All</Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLeaderboardLoading ? (
+              <div className="space-y-3">
+                {[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {top3.map((entry, idx) => (
+                  <div key={entry.userId} className="flex items-center justify-between bg-background/50 p-3 rounded-xl border border-border/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 text-center">
+                        {idx === 0 ? <Trophy className="w-5 h-5 text-yellow-500" /> :
+                         idx === 1 ? <Medal className="w-5 h-5 text-gray-400" /> :
+                         <Medal className="w-5 h-5 text-amber-700" />}
+                      </div>
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="text-[10px] font-bold bg-primary/10 text-primary">
+                          {entry.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-xs font-bold truncate max-w-[80px]">{entry.name}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase font-black flex items-center gap-0.5">
+                          <MapPin className="w-2 h-2" /> {entry.city || "ZIM"} • Lv {entry.level}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-black text-primary">{entry.xp.toLocaleString()}</p>
+                      <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter">Points</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -168,7 +291,7 @@ export default function Dashboard() {
         </Card>
 
         <div className="space-y-8">
-          <Card className="border-0 shadow-sm ring-1 ring-border">
+          <Card className="border-0 shadow-sm ring-1 ring-border h-full">
             <CardHeader>
               <CardTitle className="text-lg">Quick Study</CardTitle>
               <CardDescription>High-impact areas</CardDescription>
@@ -180,7 +303,7 @@ export default function Dashboard() {
                     <h3 className="font-bold group-hover:text-primary transition-colors">Road Signs</h3>
                     <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider">Regulatory & Warning</p>
                   </div>
-                  <Signpost className="w-8 h-8 text-primary/10 group-hover:text-primary/20 transition-colors" />
+                  <Octagon className="w-8 h-8 text-primary/10 group-hover:text-primary/20 transition-colors" />
                 </div>
               </Link>
               <Link href="/questions">
@@ -192,60 +315,6 @@ export default function Dashboard() {
                   <BookOpen className="w-8 h-8 text-primary/10 group-hover:text-primary/20 transition-colors" />
                 </div>
               </Link>
-            </CardContent>
-          </Card>
-
-          {/* Leaderboard Preview */}
-          <Card className="border-0 shadow-sm ring-1 ring-border bg-gradient-to-b from-primary/5 to-background overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-2 opacity-10">
-              <Trophy className="w-16 h-16" />
-            </div>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">Top Learners</CardTitle>
-                  <CardDescription>This week's leaders</CardDescription>
-                </div>
-                <Link href="/leaderboard">
-                  <Button variant="link" className="text-xs font-bold p-0">View All</Button>
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLeaderboardLoading ? (
-                <div className="space-y-3">
-                  {[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {top3.map((entry, idx) => (
-                    <div key={entry.userId} className="flex items-center justify-between bg-background/50 p-3 rounded-xl border border-border/50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 text-center">
-                          {idx === 0 ? <Trophy className="w-5 h-5 text-yellow-500" /> :
-                           idx === 1 ? <Medal className="w-5 h-5 text-gray-400" /> :
-                           <Medal className="w-5 h-5 text-amber-700" />}
-                        </div>
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback className="text-[10px] font-bold bg-primary/10 text-primary">
-                            {entry.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-xs font-bold truncate max-w-[80px]">{entry.name}</p>
-                          <p className="text-[9px] text-muted-foreground uppercase font-black flex items-center gap-0.5">
-                            <MapPin className="w-2 h-2" /> {entry.city || "ZIM"} • Lv {entry.level}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-black text-primary">{entry.xp.toLocaleString()}</p>
-                        <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter">Points</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>

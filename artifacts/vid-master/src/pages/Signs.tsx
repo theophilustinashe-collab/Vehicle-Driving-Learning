@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useListSigns } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Info, ArrowLeft } from "lucide-react";
+import { Search, Info, ArrowLeft, WifiOff } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -15,16 +15,39 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { RoadSign } from "@workspace/api-client-react";
+import { getOfflineSigns } from "@/lib/offline";
 
 export default function Signs() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [selectedSign, setSelectedSign] = useState<RoadSign | null>(null);
 
-  const { data: signs, isLoading, error } = useListSigns({
+  const { data: onlineSigns, isLoading, error } = useListSigns({
     search: search.length > 2 ? search : undefined,
     category: category !== "all" ? category : undefined,
-  });
+  }, { query: { retry: false } });
+
+  const signs = useMemo(() => {
+    if (onlineSigns && onlineSigns.length > 0) return onlineSigns;
+
+    // If offline or error, use local data
+    if (!navigator.onLine || error) {
+      const local = getOfflineSigns();
+      if (!local.length) return [];
+
+      return local.filter(s => {
+        const matchesSearch = !search ||
+          s.name.toLowerCase().includes(search.toLowerCase()) ||
+          s.meaning.toLowerCase().includes(search.toLowerCase());
+        const matchesCategory = category === "all" || s.category.toLowerCase() === category.toLowerCase();
+        return matchesSearch && matchesCategory;
+      });
+    }
+
+    return onlineSigns || [];
+  }, [onlineSigns, error, search, category]);
+
+  const isOffline = !navigator.onLine;
 
   const categories = [
     { value: "all", label: "All Signs" },
