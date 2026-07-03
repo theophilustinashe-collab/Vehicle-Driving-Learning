@@ -124,16 +124,15 @@ router.get("/me", requireAuth, async (req, res) => {
 router.patch("/profile", requireAuth, async (req, res) => {
   try {
     const { userId } = (req as typeof req & { user: { userId: number } }).user;
-    const { name, city } = req.body;
-
-    if (!name && !city) {
-      res.status(400).json({ error: "name or city is required" });
-      return;
-    }
+    const { name, city, phone, avatarUrl, language, soundEnabled } = req.body;
 
     const updateData: any = {};
     if (name) updateData.name = name;
     if (city) updateData.city = city;
+    if (phone !== undefined) updateData.phone = phone;
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+    if (language) updateData.language = language;
+    if (soundEnabled !== undefined) updateData.soundEnabled = soundEnabled ? 1 : 0;
 
     const [updatedUser] = await db.update(usersTable)
       .set(updateData)

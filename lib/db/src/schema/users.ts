@@ -10,6 +10,10 @@ export const usersTable = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   name: text("name").notNull(),
   city: text("city"),
+  phone: text("phone"),
+  avatarUrl: text("avatar_url"),
+  language: text("language").notNull().default("en"),
+  soundEnabled: integer("sound_enabled").notNull().default(1), // 1 for true, 0 for false
   role: userRoleEnum("role").notNull().default("learner"),
   xp: integer("xp").notNull().default(0),
   level: integer("level").notNull().default(1),

@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Clock, AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Clock, AlertTriangle, ArrowRight, CheckCircle2, Volume2, VolumeX, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { speak, stopSpeaking } from "@/lib/voice";
 import type { TestSession, AnswerInput } from "@workspace/api-client-react";
 
 export default function TestPage() {
@@ -23,6 +24,8 @@ export default function TestPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
 
   const handleStart = () => {
     startTest.mutate(
@@ -32,7 +35,8 @@ export default function TestPage() {
           setSession(data);
           setCurrentQuestionIndex(0);
           setAnswers({});
-          
+          setShowExplanation(false);
+
           if (data.mode === "timed" && data.expiresAt) {
             const expires = new Date(data.expiresAt).getTime();
             const now = new Date().getTime();
@@ -51,6 +55,23 @@ export default function TestPage() {
       }
     );
   };
+
+  const toggleVoice = (text: string) => {
+    if (isSpeaking) {
+      stopSpeaking();
+      setIsSpeaking(false);
+    } else {
+      speak(text);
+      setIsSpeaking(true);
+    }
+  };
+
+  // Auto-stop voice when question changes
+  useEffect(() => {
+    stopSpeaking();
+    setIsSpeaking(false);
+    setShowExplanation(false);
+  }, [currentQuestionIndex]);
 
   useEffect(() => {
     if (timeLeft === null || !session) return;
@@ -72,6 +93,11 @@ export default function TestPage() {
       ...prev,
       [questionId]: answerIndex,
     }));
+
+    // In practice mode, automatically show explanation if answer is selected
+    if (mode === "practice") {
+      setShowExplanation(true);
+    }
   };
 
   const handleNext = () => {
@@ -194,14 +220,29 @@ export default function TestPage() {
             {formatTime(timeLeft)}
           </div>
         )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn("ml-2 rounded-full", isSpeaking ? "text-primary bg-primary/10" : "text-muted-foreground")}
+          onClick={() => toggleVoice(`${currentQuestion.text}. Options are: ${currentQuestion.options.join(". ")}`)}
+        >
+          {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+        </Button>
       </div>
 
       <Card className="flex-1 shadow-md border-0 ring-1 ring-border overflow-hidden flex flex-col">
         <CardContent className="p-4 md:p-8 flex flex-col h-full overflow-hidden">
           <div className="flex-1 overflow-y-auto pr-1 -mr-1 custom-scrollbar">
             <div className="mb-4">
-              <div className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-secondary/20 text-secondary-foreground text-[10px] font-black uppercase tracking-widest mb-2 border border-secondary/30">
-                {currentQuestion.category}
+              <div className="flex items-center justify-between mb-2">
+                <div className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-secondary/20 text-secondary-foreground text-[10px] font-black uppercase tracking-widest border border-secondary/30">
+                  {currentQuestion.category}
+                </div>
+                {mode === "practice" && (
+                   <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest flex items-center gap-1">
+                     <Info className="w-3 h-3" /> Practice Mode
+                   </div>
+                )}
               </div>
               <h2 className="text-lg md:text-xl font-bold leading-snug text-foreground">
                 {currentQuestion.text}
@@ -214,27 +255,60 @@ export default function TestPage() {
             </div>
 
             <div className="space-y-2 pb-4">
-              {currentQuestion.options.map((option, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
-                  className={cn(
-                    "w-full text-left p-3.5 rounded-xl border-2 transition-all duration-200 flex items-start gap-3",
-                    answers[currentQuestion.id] === idx
-                      ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
-                      : "border-muted bg-card hover:border-primary/30 hover:bg-muted/50"
-                  )}
-                >
-                  <div className={cn(
-                    "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors",
-                    answers[currentQuestion.id] === idx ? "border-primary bg-primary" : "border-muted-foreground/30"
-                  )}>
-                    {answers[currentQuestion.id] === idx && <div className="w-2 h-2 bg-white rounded-full" />}
-                  </div>
-                  <span className="text-sm md:text-base font-bold leading-tight">{option}</span>
-                </button>
-              ))}
+              {currentQuestion.options.map((option, idx) => {
+                const isSelected = answers[currentQuestion.id] === idx;
+                const isCorrect = currentQuestion.correctAnswer === idx;
+
+                let buttonStyle = "border-muted bg-card hover:border-primary/30 hover:bg-muted/50";
+                if (mode === "practice" && showExplanation) {
+                  if (isCorrect) buttonStyle = "border-emerald-500 bg-emerald-50 shadow-sm ring-1 ring-emerald-500/20";
+                  else if (isSelected) buttonStyle = "border-destructive bg-destructive/5 shadow-sm";
+                } else if (isSelected) {
+                  buttonStyle = "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20";
+                }
+
+                return (
+                  <button
+                    key={idx}
+                    disabled={mode === "practice" && showExplanation}
+                    onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
+                    className={cn(
+                      "w-full text-left p-3.5 rounded-xl border-2 transition-all duration-200 flex items-start gap-3",
+                      buttonStyle
+                    )}
+                  >
+                    <div className={cn(
+                      "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors",
+                      isSelected ? (mode === "practice" && showExplanation && !isCorrect ? "border-destructive bg-destructive" : "border-primary bg-primary") :
+                      (mode === "practice" && showExplanation && isCorrect ? "border-emerald-500 bg-emerald-500" : "border-muted-foreground/30")
+                    )}>
+                      {(isSelected || (mode === "practice" && showExplanation && isCorrect)) && <div className="w-2 h-2 bg-white rounded-full" />}
+                    </div>
+                    <span className="text-sm md:text-base font-bold leading-tight">{option}</span>
+                  </button>
+                );
+              })}
             </div>
+
+            {mode === "practice" && showExplanation && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-2 mb-6"
+              >
+                <div className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-wider">
+                  <Info className="w-4 h-4" /> Why this is the answer:
+                </div>
+                <p className="text-sm leading-relaxed text-slate-700 font-medium">
+                  {currentQuestion.explanation}
+                </p>
+                <div className="pt-2">
+                   <Button size="sm" className="font-bold" onClick={handleNext}>
+                     Continue to Next <ArrowRight className="ml-2 w-4 h-4" />
+                   </Button>
+                </div>
+              </motion.div>
+            )}
           </div>
 
           <div className="flex items-center justify-between mt-4 pt-4 border-t bg-card">
