@@ -79,6 +79,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const adminItems = [
     { label: "Admin Overview", href: "/admin", icon: ShieldAlert },
     { label: "Manage Questions", href: "/admin/questions", icon: BookOpen },
+    { label: "Road Signs", href: "/admin/signs", icon: Signpost },
     { label: "Manage Users", href: "/admin/users", icon: Settings },
   ];
 

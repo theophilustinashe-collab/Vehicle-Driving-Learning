@@ -54,6 +54,7 @@ import Progress from "@/pages/Progress";
 import SettingsPage from "@/pages/Settings";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import ManageQuestions from "@/pages/admin/ManageQuestions";
+import ManageSigns from "@/pages/admin/ManageSigns";
 import ManageUsers from "@/pages/admin/ManageUsers";
 
 // Simple Error Boundary
@@ -121,6 +122,7 @@ function Router() {
                 <Route path="/settings" component={SettingsPage} />
                 <Route path="/admin" component={AdminDashboard} />
                 <Route path="/admin/questions" component={ManageQuestions} />
+                <Route path="/admin/signs" component={ManageSigns} />
                 <Route path="/admin/users" component={ManageUsers} />
                 <Route component={NotFound} />
               </Switch>

@@ -241,4 +241,106 @@ router.patch("/users/:id/role", requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+router.get("/questions", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const questions = await db.select().from(questionsTable).orderBy(desc(questionsTable.createdAt));
+    res.json(questions);
+  } catch (err) {
+    logger.error({ err }, "List admin questions error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/questions", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const data = req.body;
+    const [question] = await db.insert(questionsTable).values(data).returning();
+    res.status(201).json(question);
+  } catch (err) {
+    logger.error({ err }, "Create question error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.patch("/questions/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const data = req.body;
+    const [updated] = await db.update(questionsTable).set(data).where(eq(questionsTable.id, id)).returning();
+    if (!updated) return res.status(404).json({ error: "Question not found" });
+    res.json(updated);
+  } catch (err) {
+    logger.error({ err }, "Update question error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.delete("/questions/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await db.delete(questionsTable).where(eq(questionsTable.id, id));
+    res.json({ success: true });
+  } catch (err) {
+    logger.error({ err }, "Delete question error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/signs", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const signs = await db.select().from(roadSignsTable).orderBy(desc(roadSignsTable.createdAt));
+    res.json(signs);
+  } catch (err) {
+    logger.error({ err }, "List signs error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/signs", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const data = req.body;
+    const [sign] = await db.insert(roadSignsTable).values(data).returning();
+    res.status(201).json(sign);
+  } catch (err) {
+    logger.error({ err }, "Create sign error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.patch("/signs/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const data = req.body;
+    const [updated] = await db.update(roadSignsTable).set(data).where(eq(roadSignsTable.id, id)).returning();
+    if (!updated) return res.status(404).json({ error: "Sign not found" });
+    res.json(updated);
+  } catch (err) {
+    logger.error({ err }, "Update sign error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.delete("/signs/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await db.delete(roadSignsTable).where(eq(roadSignsTable.id, id));
+    res.json({ success: true });
+  } catch (err) {
+    logger.error({ err }, "Delete sign error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/notifications/send", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { title, message, target } = req.body;
+    logger.info({ title, message, target }, "Pushing notification (simulated)");
+    // In a real app, integrate with Firebase Cloud Messaging or OneSignal here
+    res.json({ success: true, message: "Notification sent to learners" });
+  } catch (err) {
+    logger.error({ err }, "Send notification error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;
