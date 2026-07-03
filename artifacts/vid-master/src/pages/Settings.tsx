@@ -37,9 +37,9 @@ export default function SettingsPage() {
     defaultValues: {
       name: user?.name || "",
       city: user?.city || "",
-      phone: (user as any)?.phone || "",
-      language: (user as any)?.language || "en",
-      soundEnabled: (user as any)?.soundEnabled === 1,
+      phone: user?.phone || "",
+      language: user?.language || "en",
+      soundEnabled: user?.soundEnabled === 1,
     },
   });
 
@@ -48,9 +48,9 @@ export default function SettingsPage() {
       form.reset({
         name: user.name,
         city: user.city || "",
-        phone: (user as any).phone || "",
-        language: (user as any).language || "en",
-        soundEnabled: (user as any).soundEnabled === 1,
+        phone: user.phone || "",
+        language: user.language || "en",
+        soundEnabled: user.soundEnabled === 1,
       });
     }
   }, [user, form]);

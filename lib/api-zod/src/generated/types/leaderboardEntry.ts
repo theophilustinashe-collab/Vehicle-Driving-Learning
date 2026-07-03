@@ -10,6 +10,7 @@ export interface LeaderboardEntry {
   rank: number;
   userId: number;
   name: string;
+  city?: string;
   xp: number;
   level: number;
   accuracy: number;

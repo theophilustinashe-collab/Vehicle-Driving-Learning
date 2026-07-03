@@ -1870,6 +1870,148 @@ export function useGetSign<TData = Awaited<ReturnType<typeof getSign>>, TError =
 
 
 
+export const getUpdateSignUrl = (id: number,) => {
+
+
+
+
+  return `/api/signs/${id}`
+}
+
+/**
+ * @summary Update a road sign (admin)
+ */
+export const updateSign = async (id: number,
+    roadSignInput: RoadSignInput, options?: RequestInit): Promise<RoadSign> => {
+
+  return customFetch<RoadSign>(getUpdateSignUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      roadSignInput,)
+  }
+);}
+
+
+
+
+export const getUpdateSignMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSign>>, TError,{id: number;data: BodyType<RoadSignInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSign>>, TError,{id: number;data: BodyType<RoadSignInput>}, TContext> => {
+
+const mutationKey = ['updateSign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSign>>, {id: number;data: BodyType<RoadSignInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateSign(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSignMutationResult = NonNullable<Awaited<ReturnType<typeof updateSign>>>
+    export type UpdateSignMutationBody = BodyType<RoadSignInput>
+    export type UpdateSignMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a road sign (admin)
+ */
+export const useUpdateSign = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSign>>, TError,{id: number;data: BodyType<RoadSignInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateSign>>,
+        TError,
+        {id: number;data: BodyType<RoadSignInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateSignMutationOptions(options));
+    }
+
+export const getDeleteSignUrl = (id: number,) => {
+
+
+
+
+  return `/api/signs/${id}`
+}
+
+/**
+ * @summary Delete a road sign (admin)
+ */
+export const deleteSign = async (id: number, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getDeleteSignUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteSignMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteSign>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteSign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSign>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteSign(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteSignMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSign>>>
+
+    export type DeleteSignMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a road sign (admin)
+ */
+export const useDeleteSign = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteSign>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteSignMutationOptions(options));
+    }
+
 export const getGetAdminStatsUrl = () => {
 
 

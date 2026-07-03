@@ -477,6 +477,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RoadSign"
+    patch:
+      operationId: updateSign
+      tags: [signs]
+      summary: Update a road sign (admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoadSignInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoadSign"
+    delete:
+      operationId: deleteSign
+      tags: [signs]
+      summary: Delete a road sign (admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
 
   # --- ADMIN ---
   /admin/stats:
@@ -581,7 +621,7 @@ components:
 
     User:
       type: object
-      required: [id, email, name, role, xp, level, streak, createdAt]
+      required: [id, email, name, role, xp, level, streak, createdAt, language, soundEnabled]
       properties:
         id:
           type: integer
@@ -589,6 +629,16 @@ components:
           type: string
         name:
           type: string
+        city:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+        language:
+          type: string
+        soundEnabled:
+          type: integer
         role:
           type: string
           enum: [learner, admin]
@@ -841,6 +891,8 @@ components:
         userId:
           type: integer
         name:
+          type: string
+        city:
           type: string
         xp:
           type: integer

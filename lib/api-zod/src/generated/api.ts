@@ -43,6 +43,11 @@ export const LoginResponse = zod.object({
   "id": zod.number(),
   "email": zod.string(),
   "name": zod.string(),
+  "city": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "avatarUrl": zod.string().optional(),
+  "language": zod.string(),
+  "soundEnabled": zod.number(),
   "role": zod.enum(['learner', 'admin']),
   "xp": zod.number(),
   "level": zod.number(),
@@ -70,6 +75,11 @@ export const GetMeResponse = zod.object({
   "id": zod.number(),
   "email": zod.string(),
   "name": zod.string(),
+  "city": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "avatarUrl": zod.string().optional(),
+  "language": zod.string(),
+  "soundEnabled": zod.number(),
   "role": zod.enum(['learner', 'admin']),
   "xp": zod.number(),
   "level": zod.number(),
@@ -344,6 +354,7 @@ export const GetLeaderboardResponseItem = zod.object({
   "rank": zod.number(),
   "userId": zod.number(),
   "name": zod.string(),
+  "city": zod.string().optional(),
   "xp": zod.number(),
   "level": zod.number(),
   "accuracy": zod.number(),
@@ -451,6 +462,43 @@ export const GetSignResponse = zod.object({
 
 
 /**
+ * @summary Update a road sign (admin)
+ */
+export const UpdateSignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateSignBody = zod.object({
+  "name": zod.string(),
+  "category": zod.string(),
+  "meaning": zod.string(),
+  "imageUrl": zod.string(),
+  "usage": zod.string().optional()
+})
+
+export const UpdateSignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.string(),
+  "meaning": zod.string(),
+  "imageUrl": zod.string(),
+  "usage": zod.string().nullish()
+})
+
+
+/**
+ * @summary Delete a road sign (admin)
+ */
+export const DeleteSignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteSignResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
  * @summary Get platform-wide admin statistics
  */
 export const GetAdminStatsResponse = zod.object({
@@ -474,6 +522,11 @@ export const ListUsersResponseItem = zod.object({
   "id": zod.number(),
   "email": zod.string(),
   "name": zod.string(),
+  "city": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "avatarUrl": zod.string().optional(),
+  "language": zod.string(),
+  "soundEnabled": zod.number(),
   "role": zod.enum(['learner', 'admin']),
   "xp": zod.number(),
   "level": zod.number(),
@@ -500,6 +553,11 @@ export const UpdateUserRoleResponse = zod.object({
   "id": zod.number(),
   "email": zod.string(),
   "name": zod.string(),
+  "city": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "avatarUrl": zod.string().optional(),
+  "language": zod.string(),
+  "soundEnabled": zod.number(),
   "role": zod.enum(['learner', 'admin']),
   "xp": zod.number(),
   "level": zod.number(),

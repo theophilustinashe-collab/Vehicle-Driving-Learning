@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Clock, AlertTriangle, ArrowRight, CheckCircle2, Volume2, VolumeX, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { speak, stopSpeaking } from "@/lib/voice";
 import type { TestSession, AnswerInput } from "@workspace/api-client-react";
 

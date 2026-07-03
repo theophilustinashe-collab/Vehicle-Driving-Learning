@@ -11,6 +11,11 @@ export interface User {
   id: number;
   email: string;
   name: string;
+  city?: string;
+  phone?: string;
+  avatarUrl?: string;
+  language: string;
+  soundEnabled: number;
   role: UserRole;
   xp: number;
   level: number;

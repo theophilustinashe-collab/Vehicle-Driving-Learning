@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, usersTable, questionsTable, testSessionsTable, roadSignsTable } from "@workspace/db";
-import { eq, count } from "drizzle-orm";
+import { eq, count, desc } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { logger } from "../lib/logger";
@@ -264,10 +264,13 @@ router.post("/questions", requireAuth, requireAdmin, async (req, res) => {
 
 router.patch("/questions/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const data = req.body;
     const [updated] = await db.update(questionsTable).set(data).where(eq(questionsTable.id, id)).returning();
-    if (!updated) return res.status(404).json({ error: "Question not found" });
+    if (!updated) {
+      res.status(404).json({ error: "Question not found" });
+      return;
+    }
     res.json(updated);
   } catch (err) {
     logger.error({ err }, "Update question error");
@@ -277,7 +280,7 @@ router.patch("/questions/:id", requireAuth, requireAdmin, async (req, res) => {
 
 router.delete("/questions/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     await db.delete(questionsTable).where(eq(questionsTable.id, id));
     res.json({ success: true });
   } catch (err) {
@@ -309,10 +312,13 @@ router.post("/signs", requireAuth, requireAdmin, async (req, res) => {
 
 router.patch("/signs/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const data = req.body;
     const [updated] = await db.update(roadSignsTable).set(data).where(eq(roadSignsTable.id, id)).returning();
-    if (!updated) return res.status(404).json({ error: "Sign not found" });
+    if (!updated) {
+      res.status(404).json({ error: "Sign not found" });
+      return;
+    }
     res.json(updated);
   } catch (err) {
     logger.error({ err }, "Update sign error");
@@ -322,7 +328,7 @@ router.patch("/signs/:id", requireAuth, requireAdmin, async (req, res) => {
 
 router.delete("/signs/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     await db.delete(roadSignsTable).where(eq(roadSignsTable.id, id));
     res.json({ success: true });
   } catch (err) {
