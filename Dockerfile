@@ -1,25 +1,24 @@
-# Use Node 20 as base
-FROM node:20-slim
+# Use full Node 20 for maximum compatibility with native dependencies
+FROM node:20
+
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-# Install system dependencies that might be needed for native builds
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN corepack enable
+# Ensure pnpm version matches local environment
+RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 
 WORKDIR /app
 
-# Copy the entire workspace (filtered by .dockerignore)
+# Copy the entire workspace
+# respect .dockerignore to avoid copying local node_modules
 COPY . .
 
-# Install dependencies with verbose logging to catch the exact error
-# --no-frozen-lockfile is used because the lockfile was generated on Windows
-RUN pnpm install --no-frozen-lockfile --reporter=silent || pnpm install --no-frozen-lockfile
+# Ensure a clean install environment
+RUN rm -rf node_modules artifacts/*/node_modules lib/*/node_modules
+
+# Install dependencies
+# --no-frozen-lockfile allows pnpm to resolve differences between Windows and Linux
+RUN pnpm install --no-frozen-lockfile
 
 # Build the API server and its local dependencies
 RUN pnpm --filter @workspace/api-server... build
