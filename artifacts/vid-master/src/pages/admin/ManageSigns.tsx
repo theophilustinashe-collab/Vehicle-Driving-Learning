@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useListSigns, useCreateSign, useDeleteSign, useUpdateSign } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Edit, Search, Save, X, Image as ImageIcon, Sparkles, Loader2, Check, Signpost, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Edit, Search, Save, X, Image as ImageIcon, Sparkles, Loader2, Check, Signpost, AlertCircle, Crop as CropIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -19,6 +19,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import Cropper from 'react-easy-crop';
+import { Slider } from "@/components/ui/slider";
 
 export default function ManageSigns() {
   const [search, setSearch] = useState("");
@@ -34,6 +36,12 @@ export default function ManageSigns() {
   const [editingSign, setEditingSign] = useState<any>(null);
   const [isIdentifying, setIsIdentifying] = useState(false);
 
+  // Cropping state
+  const [showCropper, setShowCropper] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
   const initialForm = {
     name: "",
     category: "regulatory",
@@ -43,6 +51,53 @@ export default function ManageSigns() {
   };
 
   const [form, setForm] = useState(initialForm);
+
+  const onCropComplete = useCallback((_croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const getCroppedImg = async (imageSrc, pixelCrop) => {
+    const image = new Image();
+    image.src = imageSrc;
+    await new Promise((resolve) => {
+      image.onload = resolve;
+    });
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) return null;
+
+    canvas.width = pixelCrop.width;
+    canvas.height = pixelCrop.height;
+
+    ctx.drawImage(
+      image,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      pixelCrop.width,
+      pixelCrop.height
+    );
+
+    return canvas.toDataURL('image/png');
+  };
+
+  const handleCropSave = async () => {
+    try {
+      const croppedImage = await getCroppedImg(form.imageUrl, croppedAreaPixels);
+      if (croppedImage) {
+        setForm({ ...form, imageUrl: croppedImage });
+        setShowCropper(false);
+        toast({ title: "Image Cropped", description: "The cropped version has been applied." });
+      }
+    } catch (e) {
+      toast({ title: "Cropping Error", description: "Could not crop the image.", variant: "destructive" });
+    }
+  };
 
   const identifySign = async () => {
     if (!form.imageUrl) return;
@@ -116,7 +171,10 @@ export default function ManageSigns() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setForm({ ...form, imageUrl: reader.result as string });
+      reader.onloadend = () => {
+        setForm({ ...form, imageUrl: reader.result as string });
+        setShowCropper(true);
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -343,25 +401,62 @@ export default function ManageSigns() {
 
             <div className="space-y-4">
               <Label className="font-black text-sm uppercase tracking-widest text-slate-400">High-Res Visual</Label>
-              {form.imageUrl && (
+
+              {showCropper ? (
+                <div className="relative w-full h-80 bg-slate-900 rounded-3xl overflow-hidden border-4 border-primary/20">
+                  <Cropper
+                    image={form.imageUrl}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    onCropChange={setCrop}
+                    onCropComplete={onCropComplete}
+                    onZoomChange={setZoom}
+                  />
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-48 z-10 bg-white/10 backdrop-blur-xl p-3 rounded-full border border-white/20">
+                    <Slider
+                      value={[zoom]}
+                      min={1}
+                      max={3}
+                      step={0.1}
+                      onValueChange={([v]) => setZoom(v)}
+                    />
+                  </div>
+                  <div className="absolute top-4 right-4 flex gap-2">
+                     <Button size="sm" variant="outline" className="bg-white/10 text-white border-white/20" onClick={() => setShowCropper(false)}>Cancel</Button>
+                     <Button size="sm" className="bg-primary text-white font-bold" onClick={handleCropSave}>Save Crop</Button>
+                  </div>
+                </div>
+              ) : form.imageUrl ? (
                 <div className="relative w-64 h-64 mx-auto rounded-[2.5rem] bg-slate-50 overflow-hidden group border-8 border-slate-100 shadow-inner flex items-center justify-center">
                   <img src={form.imageUrl} className="max-h-full max-w-full object-contain p-6" />
                   <div className="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button type="button" className="h-12 px-6 rounded-xl font-black gap-2 bg-primary shadow-lg shadow-primary/30" onClick={identifySign} disabled={isIdentifying}>
+                    <Button type="button" className="h-10 px-4 rounded-xl font-black gap-2 bg-primary shadow-lg shadow-primary/30" onClick={identifySign} disabled={isIdentifying}>
                       {isIdentifying ? <Loader2 className="animate-spin w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-                      {isIdentifying ? "Scanning..." : "AI Identify"}
+                      Identify
                     </Button>
-                    <Button type="button" variant="destructive" className="h-12 px-6 rounded-xl font-black gap-2 shadow-lg shadow-destructive/30" onClick={() => setForm({...form, imageUrl: ""})}>
-                      <X className="w-4 h-4" /> Clear
-                    </Button>
+                    <div className="flex gap-2">
+                       <Button type="button" size="icon" className="h-10 w-10 rounded-xl bg-white text-slate-900 shadow-lg" onClick={() => setShowCropper(true)}>
+                         <CropIcon className="w-5 h-5" />
+                       </Button>
+                       <Button type="button" size="icon" variant="destructive" className="h-10 w-10 rounded-xl shadow-lg" onClick={() => setForm({...form, imageUrl: ""})}>
+                         <X className="w-5 h-5" />
+                       </Button>
+                    </div>
                   </div>
                 </div>
+              ) : null}
+
+              {!showCropper && (
+                <div className="bg-slate-50 p-8 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col gap-6">
+                  <div className="space-y-2"><p className="text-[10px] font-black uppercase text-slate-400 text-center tracking-widest mb-4">Upload from Disk</p><Input type="file" accept="image/*" onChange={handleFileUpload} className="h-16 rounded-2xl bg-white border-slate-200 shadow-sm pt-4 pl-6 font-bold cursor-pointer" /></div>
+                  <div className="relative"><div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div><div className="relative flex justify-center text-[10px] uppercase font-black"><span className="bg-slate-50 px-4 text-slate-400">OR</span></div></div>
+                  <div className="space-y-2"><p className="text-[10px] font-black uppercase text-slate-400 text-center tracking-widest mb-4">Cloud URL</p><Input placeholder="https://..." className="h-16 rounded-2xl bg-white border-slate-200 shadow-sm pl-6 text-lg font-bold" value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl} onChange={e => {
+                    setForm({...form, imageUrl: e.target.value});
+                    if (e.target.value) setShowCropper(true);
+                  }} /></div>
+                </div>
               )}
-              <div className="bg-slate-50 p-8 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col gap-6">
-                <div className="space-y-2"><p className="text-[10px] font-black uppercase text-slate-400 text-center tracking-widest mb-4">Upload from Disk</p><Input type="file" accept="image/*" onChange={handleFileUpload} className="h-16 rounded-2xl bg-white border-slate-200 shadow-sm pt-4 pl-6 font-bold cursor-pointer" /></div>
-                <div className="relative"><div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div><div className="relative flex justify-center text-[10px] uppercase font-black"><span className="bg-slate-50 px-4 text-slate-400">OR</span></div></div>
-                <div className="space-y-2"><p className="text-[10px] font-black uppercase text-slate-400 text-center tracking-widest mb-4">Cloud URL</p><Input placeholder="https://..." className="h-16 rounded-2xl bg-white border-slate-200 shadow-sm pl-6 text-lg font-bold" value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl} onChange={e => setForm({...form, imageUrl: e.target.value})} /></div>
-              </div>
             </div>
 
             <div className="space-y-3">
