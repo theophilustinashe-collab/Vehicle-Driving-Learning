@@ -169,12 +169,36 @@ export default function TestPage() {
       selectedAnswer: ans,
     }));
 
+    const totalAnswered = Object.keys(answers).length;
+    if (totalAnswered < session.questions.length && !confirm(`You have only answered ${totalAnswered} out of ${session.questions.length} questions. Are you sure you want to finish?`)) {
+      return;
+    }
+
     if (!navigator.onLine || session.sessionId.startsWith('offline-')) {
+      // Calculate offline result locally
       let score = 0;
-      session.questions.forEach(q => {
-        if (answers[q.id] === q.correctAnswer) score++;
+      const offlineAnswers = session.questions.map(q => {
+        const selected = answers[q.id];
+        const isCorrect = selected === q.correctAnswer;
+        if (isCorrect) score++;
+        return {
+          questionId: q.id,
+          selectedAnswer: selected ?? -1,
+          correctAnswer: q.correctAnswer,
+          isCorrect,
+          explanation: q.explanation
+        };
       });
-      toast({ title: "Offline Score", description: `You scored ${score}/${session.questions.length}` });
+
+      // Save to local history if possible or just navigate to dashboard with a more detailed summary
+      toast({
+        title: "Exam Finished (Offline)",
+        description: `Score: ${score}/${session.questions.length} (${Math.round((score/session.questions.length)*100)}%)`,
+        variant: score >= 22 ? "default" : "destructive"
+      });
+
+      // In a more advanced version, we'd navigate to Results with state,
+      // but for now let's at least make the transition clear.
       setSession(null);
       setLocation('/dashboard');
       return;
@@ -188,11 +212,12 @@ export default function TestPage() {
             title: "Test Submitted",
             description: `You scored ${result.score}/${result.total}`,
           });
-          setLocation(`/test/${session.sessionId}/results`);
+          // FORCE REDIRECT - using window.location for absolute certainty
+          window.location.href = `/test/${session.sessionId}/results`;
         },
         onError: (err) => {
           toast({
-            title: "Failed to submit test",
+            title: "Submission Failed",
             description: err.message,
             variant: "destructive",
           });
@@ -269,11 +294,11 @@ export default function TestPage() {
            </div>
 
            {isLastQuestion ? (
-             <Button size="sm" onClick={handleSubmit} disabled={submitTest.isPending || !isAnswered} className="bg-emerald-600 hover:bg-emerald-700 font-bold h-10 px-6 shadow-lg shadow-emerald-500/20 disabled:opacity-50">
-               Finish Exam
+             <Button size="sm" onClick={handleSubmit} disabled={submitTest.isPending} className="bg-emerald-600 hover:bg-emerald-700 font-bold h-10 px-6 shadow-lg shadow-emerald-500/20">
+               {submitTest.isPending ? "Submitting..." : "Finish Exam"}
              </Button>
            ) : (
-             <Button size="sm" onClick={handleNext} disabled={!isAnswered} className="font-bold h-10 px-8 shadow-lg shadow-primary/20 disabled:opacity-50">
+             <Button size="sm" onClick={handleNext} className="font-bold h-10 px-8 shadow-lg shadow-primary/20">
                Next <ChevronRight className="w-4 h-4 ml-1" />
              </Button>
            )}
