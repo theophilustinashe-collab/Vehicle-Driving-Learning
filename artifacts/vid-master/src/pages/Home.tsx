@@ -58,12 +58,16 @@ export default function Home() {
       {
         onSuccess: (res) => {
           localStorage.setItem("vid_token", res.token);
-          window.location.href = "/dashboard";
+          // Fast UI transition
+          toast({ title: "Authorized", description: "Taking you to your dashboard..." });
+          setTimeout(() => {
+            window.location.href = "/dashboard";
+          }, 300);
         },
         onError: (err) => {
           toast({
-            title: "Login Failed",
-            description: err.message || "Invalid credentials",
+            title: "Access Denied",
+            description: err.message || "Please check your network connection.",
             variant: "destructive",
           });
         },

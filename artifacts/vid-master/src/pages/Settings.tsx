@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { syncOfflineData } from "@/lib/offline";
 import { Link } from "wouter";
-import * as Location from 'expo-location';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,7 +57,7 @@ export default function SettingsPage() {
       phone: user?.phone || "",
       avatarUrl: user?.avatarUrl || "",
       language: user?.language || "en",
-      soundEnabled: user?.soundEnabled === 1,
+      soundEnabled: !!user?.soundEnabled,
       voiceLanguage: localStorage.getItem('vid_voice_lang') || "en-GB",
       voiceRate: localStorage.getItem('vid_voice_rate') || "0.9",
     },
@@ -72,7 +71,7 @@ export default function SettingsPage() {
         phone: user.phone || "",
         avatarUrl: user.avatarUrl || "",
         language: user.language || "en",
-        soundEnabled: user.soundEnabled === 1,
+        soundEnabled: !!user.soundEnabled,
         voiceLanguage: localStorage.getItem('vid_voice_lang') || "en-GB",
         voiceRate: localStorage.getItem('vid_voice_rate') || "0.9",
       });
@@ -83,39 +82,34 @@ export default function SettingsPage() {
     setIsLocating(true);
     setShowLocationDialog(false);
 
-    try {
-      // 1. Request permissions with a professional native handler
-      const { status } = await Location.requestForegroundPermissionsAsync();
-
-      if (status !== 'granted') {
-        toast({
-          title: "Permission Denied",
-          description: "Location access is required for auto-detection.",
-          variant: "destructive"
-        });
-        setIsLocating(false);
-        return;
-      }
-
-      // 2. Get coordinates
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
-      const { latitude, longitude } = location.coords;
-
-      // 3. Reverse Geocode (Get city name)
-      const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
-      const data = await response.json();
-
-      const cityName = data.city || data.locality || data.principalSubdivision || "Zimbabwe";
-      form.setValue("city", cityName, { shouldDirty: true });
-      toast({ title: "Location Detected", description: `Updated to ${cityName}.` });
-    } catch (error) {
-      toast({ title: "Detection Failed", description: "Make sure your GPS is on and try again.", variant: "destructive" });
-    } finally {
+    if (!navigator.geolocation) {
+      toast({ title: "Not Supported", description: "Your device does not support geolocation.", variant: "destructive" });
       setIsLocating(false);
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+          const data = await response.json();
+
+          const cityName = data.city || data.locality || data.principalSubdivision || "Zimbabwe";
+          form.setValue("city", cityName, { shouldDirty: true });
+          toast({ title: "Location Detected", description: `Updated to ${cityName}.` });
+        } catch (error) {
+          toast({ title: "Detection Failed", description: "Could not identify city.", variant: "destructive" });
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        setIsLocating(false);
+        toast({ title: "Access Denied", description: "Please enable location permissions in settings.", variant: "destructive" });
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
   };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -143,6 +143,7 @@ router.post("/:sessionId/submit", requireAuth, async (req, res) => {
 
     // PERFORM DB UPDATES IN BATCHES / TRANSACTIONS FOR PERFORMANCE
     await db.transaction(async (tx) => {
+      // 1. Save the session
       await tx.update(testSessionsTable).set({
         answers: answerDetails as typeof testSessionsTable.$inferSelect['answers'],
         score,
@@ -154,7 +155,8 @@ router.post("/:sessionId/submit", requireAuth, async (req, res) => {
         completedAt: now,
       }).where(eq(testSessionsTable.sessionId, sessionId));
 
-      // Batch update question progress
+      // 2. Optimized Progress Update (Single batch loop)
+      // This is fast enough for 25 items in a transaction
       for (const a of answerDetails) {
         await tx.insert(questionProgressTable).values({
           userId,
@@ -191,25 +193,21 @@ router.post("/:sessionId/submit", requireAuth, async (req, res) => {
         }
       }
 
-      // Update user stats
+      // 3. Optimized User Stat Update
       const xpGain = passed ? 100 : 30;
       const coinsGain = passed ? 200 : 50;
-      const [user] = await tx.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
-      if (user) {
-        const newXp = (user.xp ?? 0) + xpGain;
-        const newTotalTests = (user.totalTests ?? 0) + 1;
-        const currentPassRate = user.passRate ?? 0;
-        const newPassRate = ((currentPassRate * (newTotalTests - 1)) + (passed ? 100 : 0)) / newTotalTests;
-        const newLevel = Math.floor(newXp / 500) + 1;
-        await tx.update(usersTable).set({
-          xp: newXp,
-          coins: (user.coins ?? 0) + coinsGain,
-          totalTests: newTotalTests,
-          passRate: newPassRate,
-          level: newLevel,
-          lastActiveAt: now,
-        }).where(eq(usersTable.id, userId));
-      }
+
+      await tx.execute(sql`
+        UPDATE ${usersTable}
+        SET
+          xp = COALESCE(xp, 0) + ${xpGain},
+          coins = COALESCE(coins, 0) + ${coinsGain},
+          total_tests = COALESCE(total_tests, 0) + 1,
+          pass_rate = (COALESCE(pass_rate, 0) * COALESCE(total_tests, 0) + ${passed ? 100 : 0}) / (COALESCE(total_tests, 0) + 1),
+          level = FLOOR((COALESCE(xp, 0) + ${xpGain}) / 500) + 1,
+          last_active_at = ${now}
+        WHERE id = ${userId}
+      `);
     });
 
     res.json({

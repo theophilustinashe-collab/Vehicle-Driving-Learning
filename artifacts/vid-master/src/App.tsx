@@ -12,34 +12,48 @@ const isLocal = !window.location.hostname ||
                 window.location.hostname === '127.0.0.1' ||
                 /^(\d{1,3}\.){3}\d{1,3}$/.test(window.location.hostname);
 
-// The URL of your Render backend
 const renderUrl = 'https://vehicle-driving-learning-api.onrender.com';
+const localPort = '8080';
 
 let apiUrl = (import.meta.env.VITE_API_URL as string);
 
-// Logic:
-// 1. If VITE_API_URL is set (e.g. by Render), use it.
-// 2. If we are on localhost/local IP:
-//    - If in DEV mode, use the local backend (8080).
-//    - If in PROD mode (built locally), still try local backend first, fallback to Render.
-// 3. Otherwise, use Render.
 if (!apiUrl) {
   if (isLocal) {
-    // Check if we should use the local machine IP or just localhost
+    // Determine the best local IP to use
     const host = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ? 'localhost'
       : window.location.hostname;
 
-    apiUrl = `http://${host}:8080`;
+    apiUrl = `http://${host}:${localPort}`;
+
+    // Check if we are in a production build but running locally
+    // If so, and the local backend isn't responding, we might want to fallback to Render
+    // But for now, let's stick to the detected IP.
   } else {
     apiUrl = renderUrl;
   }
 }
 
+// Ensure no trailing slash
+apiUrl = apiUrl.replace(/\/$/, "");
+
 // [Production Web Service Migration - 2026-07-05]
 console.log(`[VID Master] API URL set to: ${apiUrl}`);
 (window as any).apiUrl = apiUrl;
 setBaseUrl(apiUrl);
+
+// Global Auto-Ping for "Failed to Fetch" debugging
+if (typeof window !== 'undefined') {
+  fetch(`${apiUrl}/api/healthz`).catch(() => {
+    console.warn(`[VID Master] API at ${apiUrl} is unreachable. Falling back to Render...`);
+    // If local fails, switch to render globally
+    if (apiUrl !== renderUrl) {
+      apiUrl = renderUrl;
+      (window as any).apiUrl = apiUrl;
+      setBaseUrl(apiUrl);
+    }
+  });
+}
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import Home from "@/pages/Home";
