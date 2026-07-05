@@ -70,8 +70,7 @@ export default function Home() {
               data: {
                 name: "Google Learner",
                 email: data.email,
-                password: data.password,
-                city: "Harare"
+                password: data.password
               }
             }, {
               onSuccess: (res) => {

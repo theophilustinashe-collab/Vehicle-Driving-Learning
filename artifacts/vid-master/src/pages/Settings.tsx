@@ -82,7 +82,13 @@ export default function SettingsPage() {
   useEffect(() => {
     const handleNativeMessage = async (event: any) => {
       try {
-        const data = JSON.parse(event.data);
+        const msgData = typeof event.data === 'string' ? event.data : JSON.stringify(event.data);
+        let data;
+        try {
+          data = JSON.parse(msgData);
+        } catch (e) {
+          return; // Ignore non-JSON
+        }
 
         if (data.type === 'LOCATION_SUCCESS') {
           const { latitude, longitude } = data.coords;

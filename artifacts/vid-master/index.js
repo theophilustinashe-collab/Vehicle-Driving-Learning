@@ -31,7 +31,15 @@ function AppContent() {
   // NATIVE GPS HANDLER (Communication Bridge)
   const handleMessage = async (event) => {
     try {
-      const data = JSON.parse(event.nativeEvent.data);
+      const msgData = event.nativeEvent.data;
+      if (typeof msgData !== 'string') return;
+
+      let data;
+      try {
+        data = JSON.parse(msgData);
+      } catch (e) {
+        return; // Not a JSON message, ignore
+      }
 
       if (data.type === 'REQUEST_LOCATION') {
         const { status } = await Location.requestForegroundPermissionsAsync();
