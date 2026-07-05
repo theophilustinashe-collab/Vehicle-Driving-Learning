@@ -12,6 +12,13 @@
     "setup:windows": "setup_windows.bat"
   },
   "private": true,
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "d56253bf-5c33-44b5-9dd8-a8a07451912f"
+      }
+    }
+  },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=11.0.0"
