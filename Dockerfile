@@ -1,43 +1,29 @@
-# Use full Node 20 as base
+# Use full Node 20 as base for maximum compatibility
 FROM node:20
 
-# Set pnpm home and path
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-
-# Enable corepack and install specific pnpm version
-RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
+# Install pnpm directly
+RUN npm install -g pnpm@11.9.0
 
 WORKDIR /app
 
-# Copy configuration files
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-
-# Copy all package.json files for workspace resolution
-COPY lib/db/package.json ./lib/db/
-COPY lib/api-zod/package.json ./lib/api-zod/
-COPY lib/api-spec/package.json ./lib/api-spec/
-COPY lib/api-client-react/package.json ./lib/api-client-react/
-COPY artifacts/api-server/package.json ./artifacts/api-server/
-COPY artifacts/vid-master/package.json ./artifacts/vid-master/
-COPY artifacts/mockup-sandbox/package.json ./artifacts/mockup-sandbox/
-COPY scripts/package.json ./scripts/
-
-# Install dependencies (this layer is cached if package.jsons don't change)
-RUN pnpm install --no-frozen-lockfile
-
-# Copy the rest of the source code
+# Copy the entire project first to ensure all workspace dependencies are visible
+# .dockerignore will still filter out node_modules, .git, etc.
 COPY . .
 
-# Build the API server and its local dependencies
+# Ensure clean state
+RUN rm -rf node_modules artifacts/*/node_modules lib/*/node_modules
+
+# Run install with more info
+RUN pnpm install --no-frozen-lockfile
+
+# Build the API server
 RUN pnpm --filter @workspace/api-server... build
 
-# Set production environment variables
+# Set production environment
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Expose the port
 EXPOSE 8080
 
-# Start the API server
+# Start command
 CMD ["node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs"]
