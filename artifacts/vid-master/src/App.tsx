@@ -36,7 +36,7 @@ if (!apiUrl) {
   }
 }
 
-// [Production Build Marker - 2026-07-05]
+// [Production Build Final Release - 2026-07-05]
 console.log(`[VID Master] API URL set to: ${apiUrl}`);
 (window as any).apiUrl = apiUrl;
 setBaseUrl(apiUrl);
