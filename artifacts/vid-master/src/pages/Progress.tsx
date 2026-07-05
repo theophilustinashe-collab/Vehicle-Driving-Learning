@@ -109,16 +109,16 @@ export default function Progress() {
         </Card>
         <Card>
           <CardContent className="p-6">
-            <Layers className="w-5 h-5 text-secondary mb-2" />
-            <div className="text-2xl font-bold">{stats.totalQuestions}</div>
-            <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Questions Answered</div>
+            <Trophy className="w-5 h-5 text-amber-500 mb-2" />
+            <div className="text-2xl font-bold">{(stats as any).masteredQuestions || 0}</div>
+            <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Mastered Items</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <Activity className="w-5 h-5 text-blue-500 mb-2" />
-            <div className="text-2xl font-bold">{stats.totalTests}</div>
-            <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Tests Completed</div>
+            <Layers className="w-5 h-5 text-secondary mb-2" />
+            <div className="text-2xl font-bold">{stats.totalQuestions}</div>
+            <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Questions Answered</div>
           </CardContent>
         </Card>
       </div>

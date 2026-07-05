@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Edit, Search, Save, X, Image as ImageIcon, Sparkles, Loader2, Check } from "lucide-react";
+import { Plus, Trash2, Edit, Search, Save, X, Image as ImageIcon, Sparkles, Loader2, Check, Signpost, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -14,11 +14,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 export default function ManageSigns() {
   const [search, setSearch] = useState("");
@@ -32,26 +32,7 @@ export default function ManageSigns() {
   const [isActionOpen, setIsActionOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [editingSign, setEditingSign] = useState<any>(null);
-
-  // Handle hardware back button to close dialogs instead of navigating home
-  useEffect(() => {
-    if (!isDialogOpen && !isActionOpen) return;
-
-    window.history.pushState({ modal: true }, "");
-
-    const handlePopState = () => {
-      setIsDialogOpen(false);
-      setIsActionOpen(false);
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-      if (window.history.state?.modal) {
-        window.history.back();
-      }
-    };
-  }, [isDialogOpen, isActionOpen]);
+  const [isIdentifying, setIsIdentifying] = useState(false);
 
   const initialForm = {
     name: "",
@@ -62,28 +43,18 @@ export default function ManageSigns() {
   };
 
   const [form, setForm] = useState(initialForm);
-  const [isIdentifying, setIsIdentifying] = useState(false);
 
   const identifySign = async () => {
     if (!form.imageUrl) return;
-
     setIsIdentifying(true);
-
-    // Simulate AI identification delay
     await new Promise(resolve => setTimeout(resolve, 1500));
-
     const lowerName = form.name.toLowerCase();
-    const lowerMeaning = form.meaning.toLowerCase();
-
-    // Simple heuristic detection based on image source or name hints
     let detectedName = "";
     let detectedMeaning = "";
     let detectedCategory = "regulatory";
-
     const url = form.imageUrl.toLowerCase();
     const name = lowerName;
 
-    // REGULATORY
     if (url.includes("stop_sign") || name.includes("stop")) {
       detectedName = "Stop Sign (R1)";
       detectedMeaning = "You must bring your vehicle to a complete stop and give way to all traffic.";
@@ -105,19 +76,7 @@ export default function ManageSigns() {
     } else if (url.includes("no_u_turn") || name.includes("no u-turn")) {
       detectedName = "No U-Turn (R213)";
       detectedMeaning = "U-turns are prohibited for all vehicles.";
-    } else if (url.includes("no_left_turn") || name.includes("no left turn")) {
-      detectedName = "No Left Turn (R209)";
-      detectedMeaning = "Turning left is prohibited at this intersection.";
-    } else if (url.includes("no_right_turn") || name.includes("no right turn")) {
-      detectedName = "No Right Turn (R210)";
-      detectedMeaning = "Turning right is prohibited at this intersection.";
-    } else if (url.includes("one_way") || name.includes("one way")) {
-      detectedName = "One Way (R103)";
-      detectedMeaning = "Traffic is restricted to one direction only.";
-    }
-
-    // WARNING
-    else if (url.includes("zebra") || name.includes("zebra crossing")) {
+    } else if (url.includes("zebra") || name.includes("zebra crossing")) {
       detectedName = "Zebra Crossing (W306)";
       detectedMeaning = "Pedestrian crossing point ahead. Prepare to stop.";
       detectedCategory = "warning";
@@ -125,71 +84,39 @@ export default function ManageSigns() {
       detectedName = "School Ahead (W308)";
       detectedMeaning = "Children may be crossing the road near a school. Slow down.";
       detectedCategory = "warning";
-    } else if (url.includes("pedestrian") || name.includes("pedestrian crossing")) {
-      detectedName = "Pedestrian Crossing (W306)";
-      detectedMeaning = "Warns that there is a pedestrian crossing ahead.";
-      detectedCategory = "warning";
-    } else if (url.includes("narrow_road") || name.includes("narrow road")) {
-      detectedName = "Narrow Road Ahead (W202)";
-      detectedMeaning = "The road narrows ahead. Be cautious of oncoming traffic.";
-      detectedCategory = "warning";
-    } else if (url.includes("two_way") || name.includes("two-way")) {
-      detectedName = "Two-Way Traffic (W212)";
-      detectedMeaning = "Traffic will be moving in both directions ahead.";
-      detectedCategory = "warning";
-    } else if (url.includes("men_at_work") || name.includes("men at work") || url.includes("construction")) {
-      detectedName = "Men At Work (TW306)";
-      detectedMeaning = "Road maintenance or construction is taking place ahead.";
-      detectedCategory = "warning";
-    } else if (url.includes("bumps") || name.includes("bumps")) {
-      detectedName = "Bumps (W318)";
-      detectedMeaning = "Successive humps in the road ahead. Slow down.";
-      detectedCategory = "warning";
-    } else if (url.includes("curve") || name.includes("curve")) {
-      detectedName = "Curve Ahead";
-      detectedMeaning = "The road ahead curves. Reduce speed.";
-      detectedCategory = "warning";
-    } else if (url.includes("crossroads") || name.includes("crossroads")) {
-      detectedName = "Crossroads (W201)";
-      detectedMeaning = "Intersection ahead where two roads cross.";
-      detectedCategory = "warning";
-    }
-
-    // INFORMATIVE / FALLBACK
-    else if (url.includes("hospital") || name.includes("hospital")) {
+    } else if (url.includes("hospital") || name.includes("hospital")) {
       detectedName = "Hospital Ahead (IN1)";
       detectedMeaning = "Medical facility or hospital nearby. Keep noise low.";
       detectedCategory = "informative";
     } else {
-      toast({
-        title: "AI Scan Complete",
-        description: "Image processed. No exact match found, but you can now manually refine the details."
-      });
+      toast({ title: "AI Scan Complete", description: "Image processed. No exact match found, but you can now manually refine the details." });
       setIsIdentifying(false);
       return;
     }
-
-    setForm({
-      ...form,
-      name: detectedName,
-      meaning: detectedMeaning,
-      category: detectedCategory
-    });
-
-    toast({
-      title: "Sign Identified!",
-      description: `AI detected this as a ${detectedName}. Fields auto-filled.`,
-    });
+    setForm({ ...form, name: detectedName, meaning: detectedMeaning, category: detectedCategory });
+    toast({ title: "Sign Identified!", description: `AI detected this as a ${detectedName}.` });
     setIsIdentifying(false);
   };
+
+  useEffect(() => {
+    if (!isDialogOpen && !isActionOpen) return;
+    window.history.pushState({ modal: true }, "");
+    const handlePopState = () => {
+      setIsDialogOpen(false);
+      setIsActionOpen(false);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      if (window.history.state?.modal) window.history.back();
+    };
+  }, [isDialogOpen, isActionOpen]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setForm({ ...form, imageUrl: reader.result as string });
-      };
+      reader.onloadend = () => setForm({ ...form, imageUrl: reader.result as string });
       reader.readAsDataURL(file);
     }
   };
@@ -209,14 +136,8 @@ export default function ManageSigns() {
       imageUrl: s.imageUrl || "",
       usage: s.usage || ""
     });
-
-    // Close action dialog first
     setIsActionOpen(false);
-
-    // Tiny delay to allow the first dialog to start closing before opening the edit one
-    setTimeout(() => {
-      setIsDialogOpen(true);
-    }, 100);
+    setTimeout(() => setIsDialogOpen(true), 100);
   };
 
   const handleOpenCreate = () => {
@@ -242,7 +163,6 @@ export default function ManageSigns() {
       toast({ title: "Please fill all required fields", variant: "destructive" });
       return;
     }
-
     if (editingSign) {
       updateS.mutate({ id: editingSign.id, data: form as any }, {
         onSuccess: () => {
@@ -268,81 +188,87 @@ export default function ManageSigns() {
   }) || [];
 
   return (
-    <div className="p-4 md:p-8 max-w-[98%] mx-auto space-y-8 pb-24">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="p-4 md:p-8 w-full space-y-10 pb-32">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">Manage Road Signs</h1>
-          <p className="text-muted-foreground mt-1">Manage the library of regulatory, warning, and informative signs.</p>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-primary">Signs Library</h1>
+          <p className="text-lg font-medium text-muted-foreground mt-2">Managing {signs?.length || 0} high-resolution visual markers.</p>
         </div>
-        <Button className="gap-2 font-bold shadow-lg" onClick={handleOpenCreate}>
-          <Plus className="w-4 h-4" /> Add New Sign
-        </Button>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 bg-primary/5 p-4 rounded-3xl border border-primary/10">
+            <div className="text-right">
+              <p className="text-[10px] font-black uppercase tracking-widest text-primary">Visual Assets</p>
+              <p className="text-2xl font-black text-slate-900">{signs?.length || 0}</p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
+              <Signpost className="w-6 h-6" />
+            </div>
+          </div>
+          <Button size="lg" className="h-16 px-8 rounded-3xl font-black text-lg gap-3 shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-all" onClick={handleOpenCreate}>
+            <Plus className="w-6 h-6" /> Add New Sign
+          </Button>
+        </div>
       </div>
 
-      <Card className="border-0 shadow-sm ring-1 ring-border overflow-hidden">
+      <Card className="border-0 shadow-2xl ring-1 ring-slate-200/60 rounded-[2.5rem] overflow-hidden bg-white">
         <CardContent className="p-0">
-          <div className="p-4 border-b bg-muted/30 flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <div className="p-6 border-b bg-slate-50 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="relative w-full max-w-xl">
+              <Search className="absolute left-4 top-4 h-5 w-5 text-slate-400" />
               <Input
-                placeholder="Search signs by name..."
-                className="pl-9 bg-background"
+                placeholder="Search signs by name or classification..."
+                className="pl-12 h-14 bg-white border-slate-200 rounded-2xl text-lg font-medium shadow-sm focus:ring-primary/20"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-white px-3 py-1.5 rounded-full border shadow-sm">
-              Showing {filtered.length} Signs
+            <div className="px-6 py-2 rounded-full bg-primary/10 text-primary font-black text-xs uppercase tracking-[0.2em]">
+              {filtered.length} Signs Indexed
             </div>
           </div>
+
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[80px]">Preview</TableHead>
-                  <TableHead>Sign Name</TableHead>
-                  <TableHead className="w-[150px]">Category</TableHead>
-                  <TableHead>Meaning</TableHead>
-                  <TableHead className="w-[150px] text-right">Actions</TableHead>
+              <TableHeader className="bg-slate-50/50">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[120px] h-16 px-8 font-black uppercase text-[10px] tracking-widest">Preview</TableHead>
+                  <TableHead className="h-16 font-black uppercase text-[10px] tracking-widest">Sign Identification</TableHead>
+                  <TableHead className="h-16 font-black uppercase text-[10px] tracking-widest">Meaning & Instruction</TableHead>
+                  <TableHead className="w-[180px] h-16 font-black uppercase text-[10px] tracking-widest text-right px-8">Management</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Loading signs...</TableCell>
-                  </TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-32 text-slate-400 font-bold">Accessing visual archives...</TableCell></TableRow>
                 ) : filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No signs found</TableCell>
-                  </TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-32 text-slate-400 font-bold">No signs found matching your search.</TableCell></TableRow>
                 ) : (
                   filtered.map((s) => (
-                    <TableRow
-                      key={s.id}
-                      className="hover:bg-muted/50 transition-colors cursor-pointer group"
-                      onClick={() => handleRowClick(s)}
-                    >
-                      <TableCell>
-                        <div className="w-12 h-12 rounded-lg border bg-white flex items-center justify-center overflow-hidden shadow-sm">
-                          <img src={s.imageUrl} alt={s.name} className="w-full h-full object-contain p-1" />
+                    <TableRow key={s.id} className="h-28 hover:bg-slate-50/50 transition-all border-b cursor-pointer group" onClick={() => handleRowClick(s)}>
+                      <TableCell className="px-8">
+                        <div className="w-20 h-20 rounded-2xl border-2 border-white shadow-md bg-white flex items-center justify-center overflow-hidden ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
+                          <img src={s.imageUrl} className="w-full h-full object-contain p-1" />
                         </div>
                       </TableCell>
-                      <TableCell className="font-bold text-slate-900">{s.name}</TableCell>
-                      <TableCell><Badge variant="secondary" className="uppercase text-[10px] font-black">{s.category}</Badge></TableCell>
-                      <TableCell className="text-sm max-w-[200px] truncate text-muted-foreground" title={s.meaning}>{s.meaning}</TableCell>
-                      <TableCell className="text-right space-x-2 whitespace-nowrap">
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="font-black text-slate-900 text-lg leading-none">{s.name}</p>
+                          <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest py-0 h-4 border-slate-200 mt-1">
+                            {s.category}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-slate-600 font-medium max-w-md line-clamp-2 leading-snug">{s.meaning}</p>
+                        <p className="text-[9px] font-black text-slate-400 uppercase mt-1 tracking-tighter">ID #{s.id}</p>
+                      </TableCell>
+                      <TableCell className="text-right px-8">
                         <Button
-                          type="button"
-                          size="sm"
                           variant="secondary"
-                          className="h-8 gap-1.5 font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white border-0 transition-all opacity-0 group-hover:opacity-100"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(s);
-                          }}
+                          className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-sm"
+                          onClick={(e) => { e.stopPropagation(); handleEdit(s); }}
                         >
-                          <Edit className="h-3.5 w-3.5" />
-                          Edit
+                          <Edit className="h-4 w-4 mr-2" /> Modify
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -354,32 +280,54 @@ export default function ManageSigns() {
         </CardContent>
       </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingSign ? "Edit Road Sign" : "Add New Road Sign"}</DialogTitle>
-            <DialogDescription>
-              Update the sign's name, category, and meaning.
-            </DialogDescription>
+      {/* Action Dialog */}
+      <Dialog open={isActionOpen} onOpenChange={setIsActionOpen}>
+        <DialogContent className="max-w-md rounded-[2.5rem] p-8">
+          <DialogHeader className="space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
+              <Signpost className="w-8 h-8" />
+            </div>
+            <div className="text-center space-y-2">
+              <DialogTitle className="text-2xl font-black tracking-tight">Sign Manager</DialogTitle>
+              <DialogDescription className="font-bold text-slate-500 italic px-4 leading-tight">
+                "{selectedRow?.name}"
+              </DialogDescription>
+            </div>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <Label className="font-bold">Sign Name / ID</Label>
-              <Input
-                placeholder="e.g. Stop Sign (R1)"
-                value={form.name}
-                onChange={e => setForm({...form, name: e.target.value})}
-              />
+          <div className="grid grid-cols-1 gap-4 py-6">
+            <Button size="lg" className="h-20 justify-start gap-4 rounded-3xl text-xl font-black shadow-xl shadow-primary/10" onClick={() => handleEdit(selectedRow)}>
+              <div className="bg-white/20 p-3 rounded-2xl"><Edit className="w-6 h-6" /></div>
+              Edit Sign Details
+            </Button>
+            <Button variant="outline" size="lg" className="h-20 justify-start gap-4 rounded-3xl text-xl font-black text-destructive border-destructive/20 hover:bg-destructive/5 shadow-sm" onClick={() => handleDelete(selectedRow?.id)}>
+              <div className="bg-destructive/10 p-3 rounded-2xl text-destructive"><Trash2 className="w-6 h-6" /></div>
+              Delete Permanently
+            </Button>
+          </div>
+          <Button variant="ghost" onClick={() => setIsActionOpen(false)} className="w-full font-black text-slate-400 uppercase text-xs tracking-widest mt-2">Dismiss</Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-[2.5rem] p-10">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-black tracking-tight">{editingSign ? "Update Marker" : "New Visual Marker"}</DialogTitle>
+            <DialogDescription className="text-lg font-medium text-slate-500">Provide official SADC details for the road sign library.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-8 py-8">
+            <div className="space-y-3">
+              <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Sign Name / Curriculum ID</Label>
+              <Input placeholder="e.g. Stop Sign (R1)" className="h-14 rounded-2xl text-lg font-bold border-slate-200 focus:ring-primary/20" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
             </div>
 
-            <div className="space-y-2">
-              <Label className="font-bold">Category</Label>
+            <div className="space-y-3">
+              <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Official Category</Label>
               <Select value={form.category} onValueChange={v => setForm({...form, category: v})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="h-14 rounded-2xl font-bold border-slate-200"><SelectValue /></SelectTrigger>
+                <SelectContent className="rounded-xl border-slate-200">
                   <SelectItem value="regulatory">Regulatory</SelectItem>
                   <SelectItem value="warning">Warning</SelectItem>
                   <SelectItem value="informative">Informative</SelectItem>
@@ -388,138 +336,44 @@ export default function ManageSigns() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label className="font-bold">Meaning / Instruction</Label>
-              <Textarea
-                placeholder="What does this sign mean?"
-                value={form.meaning}
-                onChange={e => setForm({...form, meaning: e.target.value})}
-              />
+            <div className="space-y-3">
+              <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Standard Meaning</Label>
+              <Textarea placeholder="What does this sign legally mean?" className="min-h-[120px] rounded-2xl font-medium border-slate-200" value={form.meaning} onChange={e => setForm({...form, meaning: e.target.value})} />
             </div>
 
-            <div className="space-y-3">
-              <Label className="font-bold">Sign Image</Label>
-
+            <div className="space-y-4">
+              <Label className="font-black text-sm uppercase tracking-widest text-slate-400">High-Res Visual</Label>
               {form.imageUrl && (
-                <div className="relative w-full aspect-square max-w-[200px] mx-auto border-2 border-dashed rounded-xl flex items-center justify-center bg-muted overflow-hidden group">
-                  <img src={form.imageUrl} className="w-full h-full object-contain p-2" />
-                  <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="h-8 gap-1.5 font-bold bg-primary hover:bg-primary/90 shadow-lg border border-white/20"
-                      onClick={identifySign}
-                      disabled={isIdentifying}
-                    >
-                      {isIdentifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                      {isIdentifying ? "Identifying..." : "AI Identify"}
+                <div className="relative w-64 h-64 mx-auto rounded-[2.5rem] bg-slate-50 overflow-hidden group border-8 border-slate-100 shadow-inner flex items-center justify-center">
+                  <img src={form.imageUrl} className="max-h-full max-w-full object-contain p-6" />
+                  <div className="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button type="button" className="h-12 px-6 rounded-xl font-black gap-2 bg-primary shadow-lg shadow-primary/30" onClick={identifySign} disabled={isIdentifying}>
+                      {isIdentifying ? <Loader2 className="animate-spin w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                      {isIdentifying ? "Scanning..." : "AI Identify"}
                     </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="h-8 gap-1"
-                      onClick={() => setForm({...form, imageUrl: ""})}
-                      disabled={isIdentifying}
-                    >
-                      <X className="w-3 h-3" /> Remove
+                    <Button type="button" variant="destructive" className="h-12 px-6 rounded-xl font-black gap-2 shadow-lg shadow-destructive/30" onClick={() => setForm({...form, imageUrl: ""})}>
+                      <X className="w-4 h-4" /> Clear
                     </Button>
                   </div>
                 </div>
               )}
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <p className="text-[10px] text-muted-foreground uppercase font-black">Option A: Upload File</p>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="cursor-pointer"
-                  />
-                </div>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground font-bold">Or</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-[10px] text-muted-foreground uppercase font-black">Option B: Paste Image URL</p>
-                  <Input
-                    placeholder="https://..."
-                    value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl}
-                    onChange={e => setForm({...form, imageUrl: e.target.value})}
-                  />
-                </div>
+              <div className="bg-slate-50 p-8 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col gap-6">
+                <div className="space-y-2"><p className="text-[10px] font-black uppercase text-slate-400 text-center tracking-widest mb-4">Upload from Disk</p><Input type="file" accept="image/*" onChange={handleFileUpload} className="h-16 rounded-2xl bg-white border-slate-200 shadow-sm pt-4 pl-6 font-bold cursor-pointer" /></div>
+                <div className="relative"><div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div><div className="relative flex justify-center text-[10px] uppercase font-black"><span className="bg-slate-50 px-4 text-slate-400">OR</span></div></div>
+                <div className="space-y-2"><p className="text-[10px] font-black uppercase text-slate-400 text-center tracking-widest mb-4">Cloud URL</p><Input placeholder="https://..." className="h-16 rounded-2xl bg-white border-slate-200 shadow-sm pl-6 text-lg font-bold" value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl} onChange={e => setForm({...form, imageUrl: e.target.value})} /></div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="font-bold">Usage / Notes (Optional)</Label>
-              <Input
-                placeholder="Where is this usually placed?"
-                value={form.usage}
-                onChange={e => setForm({...form, usage: e.target.value})}
-              />
+            <div className="space-y-3">
+              <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Usage / Placement (Optional)</Label>
+              <Input placeholder="e.g. 50m before a bridge" className="h-14 rounded-2xl font-bold border-slate-200" value={form.usage} onChange={e => setForm({...form, usage: e.target.value})} />
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={createS.isPending || updateS.isPending}>
-              {editingSign ? "Update Sign" : "Add Sign"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Action Choice Dialog */}
-      <Dialog open={isActionOpen} onOpenChange={setIsActionOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <div className="flex items-center gap-2 text-primary mb-2">
-              <ImageIcon className="w-5 h-5" />
-              <span className="text-xs font-black uppercase tracking-widest">Sign Actions</span>
-            </div>
-            <CardTitle className="text-xl">What would you like to do?</CardTitle>
-            <CardDescription className="line-clamp-2 mt-2 font-medium">
-              "{selectedRow?.name}"
-            </CardDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-1 gap-3 py-4">
-            <Button
-              size="lg"
-              className="h-16 justify-start gap-4 text-lg font-bold"
-              onClick={() => handleEdit(selectedRow)}
-            >
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Edit className="w-6 h-6" />
-              </div>
-              Edit Sign Details
-            </Button>
-
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-16 justify-start gap-4 text-lg font-bold text-destructive hover:bg-destructive/5 border-destructive/20"
-              onClick={() => handleDelete(selectedRow?.id)}
-            >
-              <div className="bg-destructive/10 p-2 rounded-lg text-destructive">
-                <Trash2 className="w-6 h-6" />
-              </div>
-              Delete Permanently
-            </Button>
-          </div>
-
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsActionOpen(false)} className="w-full font-bold">
-              Cancel
+          <DialogFooter className="sticky bottom-0 bg-white pt-6 border-t mt-8">
+            <Button variant="ghost" size="lg" className="rounded-2xl font-black text-slate-400 uppercase tracking-widest" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+            <Button size="lg" className="h-16 px-12 rounded-2xl font-black text-lg shadow-xl shadow-primary/25" onClick={handleSubmit} disabled={createS.isPending || updateS.isPending}>
+              {editingSign ? "Save Marker" : "Register Marker"}
             </Button>
           </DialogFooter>
         </DialogContent>

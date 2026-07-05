@@ -5,36 +5,35 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a24fbbf3-9b96-441e-8e83-dceba08f5ebd" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../src/pages/Support.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/add_barrier_sign.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/add_curriculum_signs.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/add_missing_curriculum.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/add_more_questions.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/cleanup_signs.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/list_users.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/promote_admin.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/seed_split_signs.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../api-server/src/routes/garage.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/pages/Garage.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/archives.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/questionProgress.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/add_daily_column.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/fix_db.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../scripts/update_schema_v2.mjs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../api-server/src/app.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/app.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/index.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/progress.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/progress.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/signs.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/signs.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/tests.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/tests.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../index.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/App.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/components/layout/AppLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/layout/AppLayout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/lib/offline.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/lib/offline.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/lib/voice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/lib/voice.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Dashboard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/Home.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Home.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/Leaderboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Leaderboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Progress.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Progress.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/Questions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Questions.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/Settings.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Settings.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/Signs.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Signs.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/Test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Test.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/TestResults.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/TestResults.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/admin/ManageQuestions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/admin/ManageQuestions.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/pages/admin/ManageSigns.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/admin/ManageSigns.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../scripts/check_signs.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/../../../scripts/check_signs.mjs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../scripts/seed.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/../../../scripts/seed.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/admin/ManageUsers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/admin/ManageUsers.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/db/src/schema/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/db/src/schema/users.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/users.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,22 +64,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.Configure Daemon JVM Criteria.executor": "Run",
-    "GradleDaemonJvmCriteriaMigrationNotification.isNotificationDisabled": "true",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.Configure Daemon JVM Criteria.executor&quot;: &quot;Run&quot;,
+    &quot;GradleDaemonJvmCriteriaMigrationNotification.isNotificationDisabled&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
       <module name="VID_Master.app" />

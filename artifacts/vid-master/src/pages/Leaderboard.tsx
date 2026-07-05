@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Medal, Award, Flame, ArrowLeft, MapPin } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
@@ -80,6 +80,7 @@ export default function Leaderboard() {
                     
                     <div className="col-span-6 md:col-span-5 flex items-center gap-3">
                       <Avatar className={isTop3 ? 'ring-2 ring-primary ring-offset-2' : ''}>
+                        {entry.avatarUrl && <AvatarImage src={entry.avatarUrl} alt={entry.name} className="object-cover" />}
                         <AvatarFallback className="font-bold bg-primary/10 text-primary">
                           {entry.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>

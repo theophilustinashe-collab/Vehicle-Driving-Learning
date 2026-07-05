@@ -139,6 +139,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Take a Test", href: "/test", icon: PlayCircle },
+    { label: "The Garage", href: "/garage", icon: Car },
     { label: "History", href: "/history", icon: HistoryIcon },
     { label: "Road Signs", href: "/signs", icon: Octagon },
     { label: "Question Bank", href: "/questions", icon: BookOpen },
@@ -188,10 +189,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+            className="lg:hidden text-sidebar-foreground/70 hover:text-white hover:bg-white/10 rounded-2xl w-10 h-10 border border-white/5 shadow-inner active:scale-90 transition-all"
             onClick={() => setIsSidebarOpen(false)}
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </Button>
         </div>
 
@@ -302,10 +303,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="-ml-1 h-10 w-10 rounded-full hover:bg-slate-100"
+                className="-ml-1 h-10 w-10 rounded-2xl hover:bg-slate-100 border border-slate-200 shadow-sm active:scale-95 transition-all"
                 onClick={() => window.history.back()}
               >
-                <ArrowLeft className="h-5 w-5 text-slate-600" />
+                <ArrowLeft className="h-5 w-5 text-slate-700" />
               </Button>
             )}
             <div className={cn(

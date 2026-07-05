@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Edit, Search, Save, X, Image as ImageIcon, List, Filter, Sparkles, Loader2 } from "lucide-react";
+import { Plus, Trash2, Edit, Search, Save, X, Image as ImageIcon, List, Filter, Sparkles, Loader2, BookOpen, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -14,12 +14,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 export default function ManageQuestions() {
   const [search, setSearch] = useState("");
@@ -36,20 +36,27 @@ export default function ManageQuestions() {
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [isIdentifying, setIsIdentifying] = useState(false);
 
+  const initialForm = {
+    text: "",
+    category: "General Rules",
+    difficulty: "medium",
+    options: ["", "", "", ""],
+    correctAnswer: 0,
+    explanation: "",
+    imageUrl: ""
+  };
+
+  const [form, setForm] = useState(initialForm);
+
   const identifyFromImage = async () => {
     if (!form.imageUrl) return;
-
     setIsIdentifying(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
-
     const lowerUrl = form.imageUrl.toLowerCase();
-
-    // Heuristic detection for questions
     let detectedText = "";
     let detectedExplanation = "";
     let detectedCategory = "Signs";
 
-    // REGULATORY
     if (lowerUrl.includes("stop_sign") || lowerUrl.includes("stop")) {
       detectedText = "What must a driver do when approaching this sign?";
       detectedExplanation = "A stop sign requires a complete cessation of movement and yielding to all other traffic.";
@@ -65,94 +72,45 @@ export default function ManageQuestions() {
     } else if (lowerUrl.includes("no_overtaking") || lowerUrl.includes("overtaking")) {
       detectedText = "What is the restriction indicated by this sign?";
       detectedExplanation = "It means that overtaking other vehicles is prohibited in this section of the road.";
-    }
-
-    // WARNING
-    else if (lowerUrl.includes("zebra") || lowerUrl.includes("pedestrian")) {
+    } else if (lowerUrl.includes("zebra") || lowerUrl.includes("pedestrian")) {
       detectedText = "What does this warning sign indicate?";
       detectedExplanation = "It warns that a pedestrian crossing is ahead and you should be prepared to stop.";
     } else if (lowerUrl.includes("school") || lowerUrl.includes("children")) {
       detectedText = "When seeing this sign, a driver must:";
       detectedExplanation = "Slow down and be alert for children who may be crossing the road near a school.";
-    } else if (lowerUrl.includes("narrow_road") || lowerUrl.includes("narrow")) {
-      detectedText = "This warning sign means:";
-      detectedExplanation = "The road narrows ahead. Be cautious of narrowing path and oncoming traffic.";
-    } else if (lowerUrl.includes("two_way") || lowerUrl.includes("2way")) {
-      detectedText = "This sign warns that:";
-      detectedExplanation = "Traffic will be moving in both directions ahead on the same road.";
-    } else if (lowerUrl.includes("men_at_work") || lowerUrl.includes("construction")) {
-      detectedText = "What should you expect when seeing this sign?";
-      detectedExplanation = "It indicates that road maintenance or construction is taking place ahead. Slow down.";
-    } else if (lowerUrl.includes("bumps") || lowerUrl.includes("humps")) {
-      detectedText = "The sign indicates:";
-      detectedExplanation = "There are speed humps or successive bumps in the road ahead. Reduce speed.";
-    }
-
-    // INTERSECTIONS / DIAGRAMS
-    else if (lowerUrl.includes("intersection") || lowerUrl.includes("car ") || lowerUrl.includes("diagram")) {
+    } else if (lowerUrl.includes("intersection") || lowerUrl.includes("car ") || lowerUrl.includes("diagram")) {
       detectedText = "Which car has the right of way in this diagram?";
       detectedExplanation = "Traffic approaching from the right or those already in the intersection generally have priority.";
       detectedCategory = "Intersections";
-    }
-    else {
+    } else {
       toast({ title: "Scan Complete", description: "Image analyzed. No specific template found for this sign yet." });
       setIsIdentifying(false);
       return;
     }
-
-    setForm({
-      ...form,
-      text: detectedText,
-      explanation: detectedExplanation,
-      category: detectedCategory
-    });
-
+    setForm({ ...form, text: detectedText, explanation: detectedExplanation, category: detectedCategory });
     toast({ title: "Smart Suggestion Applied", description: "AI detected the sign and suggested a question format." });
     setIsIdentifying(false);
   };
 
-  // Handle hardware back button to close dialogs instead of navigating home
   useEffect(() => {
     if (!isDialogOpen && !isActionOpen) return;
-
-    // Push a dummy state so 'back' button has something to pop
     window.history.pushState({ modal: true }, "");
-
-    const handlePopState = (e: PopStateEvent) => {
-      // When back is pressed, close everything
+    const handlePopState = () => {
       setIsDialogOpen(false);
       setIsActionOpen(false);
     };
-
     window.addEventListener("popstate", handlePopState);
     return () => {
       window.removeEventListener("popstate", handlePopState);
-      // Clean up the dummy history entry if we closed the modal manually
-      if (window.history.state?.modal) {
-        window.history.back();
-      }
+      if (window.history.state?.modal) window.history.back();
     };
   }, [isDialogOpen, isActionOpen]);
-
-  const initialForm = {
-    text: "",
-    category: "General Rules",
-    difficulty: "medium",
-    options: ["", "", "", ""],
-    correctAnswer: 0,
-    explanation: "",
-    imageUrl: ""
-  };
-
-  const [form, setForm] = useState(initialForm);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setForm({ ...form, imageUrl: reader.result as string });
-      };
+      reader.onloadend = () => setForm({ ...form, imageUrl: reader.result as string });
       reader.readAsDataURL(file);
     }
   };
@@ -174,15 +132,8 @@ export default function ManageQuestions() {
       explanation: q.explanation || "",
       imageUrl: q.imageUrl || ""
     });
-
-    // Close action dialog first
     setIsActionOpen(false);
-
-    // Tiny delay to allow the first dialog to start closing before opening the edit one
-    // This prevents Radix UI focus/pointer-event lock conflicts
-    setTimeout(() => {
-      setIsDialogOpen(true);
-    }, 100);
+    setTimeout(() => setIsDialogOpen(true), 100);
   };
 
   const handleOpenCreate = () => {
@@ -208,7 +159,6 @@ export default function ManageQuestions() {
       toast({ title: "Please fill all required fields", variant: "destructive" });
       return;
     }
-
     if (editingQuestion) {
       updateQ.mutate({ id: editingQuestion.id, data: form as any }, {
         onSuccess: () => {
@@ -231,137 +181,121 @@ export default function ManageQuestions() {
   const filtered = questions?.filter(q => {
     const text = q.text?.toLowerCase() || "";
     const category = q.category?.toLowerCase() || "";
-    const matchesSearch = text.includes(search.toLowerCase()) ||
-                         category.includes(search.toLowerCase());
-
+    const matchesSearch = text.includes(search.toLowerCase()) || category.includes(search.toLowerCase());
     if (!matchesSearch) return false;
-
     if (activeTab === "all") return true;
     if (activeTab === "signs") return category.includes("sign");
     if (activeTab === "diagrams") return category.includes("intersection") || q.imageUrl || text.includes("diagram") || text.includes("car ");
     if (activeTab === "rules") return category.includes("rule") || category.includes("legal") || category.includes("safety");
-
     if (activeTab === "missing_images") {
       const isMissing = !q.imageUrl || (typeof q.imageUrl === 'string' && q.imageUrl.trim() === "");
-      const needsPic = category.includes("sign") ||
-                      text.includes("sign") ||
-                      text.includes("car") ||
-                      text.includes("diagram") ||
-                      text.includes("figure") ||
-                      text.includes("which car") ||
-                      text.includes("this sign");
+      const needsPic = category.includes("sign") || text.includes("sign") || text.includes("car") || text.includes("diagram") || text.includes("figure") || text.includes("which car") || text.includes("this sign");
       return isMissing && needsPic;
     }
-
     return true;
   }) || [];
 
   return (
-    <div className="p-4 md:p-8 max-w-[98%] mx-auto space-y-8 pb-24">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="p-4 md:p-8 w-full space-y-10 pb-32">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">Manage Questions</h1>
-          <p className="text-muted-foreground mt-1">Add, edit, or archive questions in the test bank.</p>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-primary">Question Bank</h1>
+          <p className="text-lg font-medium text-muted-foreground mt-2">Managing {questions?.length || 0} active curriculum items.</p>
         </div>
-        <Button className="gap-2 font-bold shadow-lg" onClick={handleOpenCreate}>
-          <Plus className="w-4 h-4" /> Create Question
-        </Button>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 bg-amber-500/5 p-4 rounded-3xl border border-amber-500/10">
+            <div className="text-right">
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Action Required</p>
+              <p className="text-2xl font-black text-slate-900">{questions?.filter(q => !q.imageUrl && (q.category?.toLowerCase() || "").includes('sign'))?.length || 0}</p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+          </div>
+          <Button size="lg" className="h-16 px-8 rounded-3xl font-black text-lg gap-3 shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-all" onClick={handleOpenCreate}>
+            <Plus className="w-6 h-6" /> Create Question
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto p-1 bg-muted/50 border">
-          <TabsTrigger value="all" className="py-2 gap-2 font-bold"><List className="w-3.5 h-3.5" /> All</TabsTrigger>
-          <TabsTrigger value="rules" className="py-2 gap-2 font-bold">General Rules</TabsTrigger>
-          <TabsTrigger value="signs" className="py-2 gap-2 font-bold">Signs</TabsTrigger>
-          <TabsTrigger value="diagrams" className="py-2 gap-2 font-bold">Diagrams</TabsTrigger>
-          <TabsTrigger value="missing_images" className="py-2 gap-2 font-bold text-amber-600 data-[state=active]:bg-amber-100"><ImageIcon className="w-3.5 h-3.5" /> Missing Pic</TabsTrigger>
+        <TabsList className="flex w-full md:w-auto h-16 p-1.5 bg-slate-100 rounded-3xl border mb-2">
+          <TabsTrigger value="all" className="flex-1 md:px-8 rounded-2xl font-black text-xs uppercase tracking-widest data-[state=active]:shadow-lg"><List className="w-4 h-4 mr-2" /> All Items</TabsTrigger>
+          <TabsTrigger value="rules" className="flex-1 md:px-8 rounded-2xl font-black text-xs uppercase tracking-widest data-[state=active]:shadow-lg">Rules</TabsTrigger>
+          <TabsTrigger value="signs" className="flex-1 md:px-8 rounded-2xl font-black text-xs uppercase tracking-widest data-[state=active]:shadow-lg">Signs</TabsTrigger>
+          <TabsTrigger value="diagrams" className="flex-1 md:px-8 rounded-2xl font-black text-xs uppercase tracking-widest data-[state=active]:shadow-lg">Diagrams</TabsTrigger>
+          <TabsTrigger value="missing_images" className="flex-1 md:px-8 rounded-2xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-amber-500 data-[state=active]:text-white"><ImageIcon className="w-4 h-4 mr-2" /> Missing Pic</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      <Card className="border-0 shadow-sm ring-1 ring-border overflow-hidden">
+      <Card className="border-0 shadow-2xl ring-1 ring-slate-200/60 rounded-[2.5rem] overflow-hidden bg-white">
         <CardContent className="p-0">
-          <div className="p-4 border-b bg-muted/30 flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <div className="p-6 border-b bg-slate-50 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="relative w-full max-w-xl">
+              <Search className="absolute left-4 top-4 h-5 w-5 text-slate-400" />
               <Input 
-                placeholder="Search questions..." 
-                className="pl-9 bg-background"
+                placeholder="Search across text, category, or ID..."
+                className="pl-12 h-14 bg-white border-slate-200 rounded-2xl text-lg font-medium shadow-sm focus:ring-primary/20"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-white px-3 py-1.5 rounded-full border shadow-sm">
-              Showing {filtered.length} Results
+            <div className="px-6 py-2 rounded-full bg-primary/10 text-primary font-black text-xs uppercase tracking-[0.2em]">
+              {filtered.length} Items Found
             </div>
           </div>
+
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[80px]">Type</TableHead>
-                  <TableHead>Question Text</TableHead>
-                  <TableHead className="w-[150px]">Category</TableHead>
-                  <TableHead className="w-[100px]">Difficulty</TableHead>
-                  <TableHead className="w-[150px] text-right">Actions</TableHead>
+              <TableHeader className="bg-slate-50/50">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[100px] h-16 px-8 font-black uppercase text-[10px] tracking-widest">Type</TableHead>
+                  <TableHead className="h-16 font-black uppercase text-[10px] tracking-widest">Curriculum Content</TableHead>
+                  <TableHead className="h-16 font-black uppercase text-[10px] tracking-widest">Classification</TableHead>
+                  <TableHead className="h-16 font-black uppercase text-[10px] tracking-widest text-right px-8">Management</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Loading questions...</TableCell>
-                  </TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-32 text-slate-400 font-bold">Synchronizing database...</TableCell></TableRow>
                 ) : filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground bg-muted/5">
-                      <div className="flex flex-col items-center gap-2">
-                        <Filter className="w-8 h-8 opacity-20" />
-                        <p className="font-bold">No questions found matching your filter</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-32 text-slate-400 font-bold">No curriculum items match your current filter.</TableCell></TableRow>
                 ) : (
                   filtered.map((q) => (
-                    <TableRow
-                      key={q.id}
-                      className="hover:bg-muted/50 transition-colors cursor-pointer group"
-                      onClick={() => handleRowClick(q)}
-                    >
-                      <TableCell>
+                    <TableRow key={q.id} className="h-28 hover:bg-slate-50/50 transition-all border-b cursor-pointer group" onClick={() => handleRowClick(q)}>
+                      <TableCell className="px-8">
                         {q.imageUrl ? (
-                          <div className="w-10 h-10 rounded-md border bg-white flex items-center justify-center overflow-hidden shadow-sm">
-                            <img src={q.imageUrl} className="w-full h-full object-contain" />
+                          <div className="w-16 h-16 rounded-2xl border-2 border-white shadow-md bg-white flex items-center justify-center overflow-hidden ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
+                            <img src={q.imageUrl} className="w-full h-full object-contain p-1" />
                           </div>
                         ) : (
-                          <div className="w-10 h-10 rounded-md border-2 border-dashed bg-muted/30 flex items-center justify-center text-muted-foreground/30">
-                            <ImageIcon className="w-4 h-4" />
+                          <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-slate-300">
+                            <ImageIcon className="w-6 h-6" />
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="font-medium">
-                        <div className="max-w-md">
-                          <p className="truncate" title={q.text}>{q.text}</p>
-                          <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter mt-0.5">ID #{q.id}</p>
+                      <TableCell>
+                        <div className="max-w-2xl space-y-1">
+                          <p className="font-black text-slate-900 text-lg leading-tight line-clamp-2">{q.text}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">ID #{q.id}</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-200" />
+                            <span className="text-[10px] font-black text-primary uppercase tracking-tighter">{q.difficulty}</span>
+                          </div>
                         </div>
                       </TableCell>
-                      <TableCell><Badge variant="secondary" className="uppercase text-[9px] font-black">{q.category}</Badge></TableCell>
                       <TableCell>
-                        <Badge variant={q.difficulty === 'hard' ? 'destructive' : q.difficulty === 'medium' ? 'default' : 'outline'} className="uppercase text-[9px] font-bold">
-                          {q.difficulty}
+                        <Badge className="bg-slate-900 hover:bg-slate-900 text-white font-black text-[10px] tracking-widest uppercase px-3 py-1 rounded-lg">
+                          {q.category}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right space-x-2 whitespace-nowrap">
+                      <TableCell className="text-right px-8">
                         <Button
-                          type="button"
-                          size="sm"
                           variant="secondary"
-                          className="h-8 gap-1.5 font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white border-0 transition-all opacity-0 group-hover:opacity-100"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(q);
-                          }}
+                          className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-sm"
+                          onClick={(e) => { e.stopPropagation(); handleEdit(q); }}
                         >
-                          <Edit className="h-3.5 w-3.5" />
-                          Edit
+                          <Edit className="h-4 w-4 mr-2" /> Modify
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -373,196 +307,110 @@ export default function ManageQuestions() {
         </CardContent>
       </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingQuestion ? "Edit Question" : "Create New Question"}</DialogTitle>
-            <DialogDescription>
-              Provide question details, options, and explanations.
-            </DialogDescription>
+      {/* Action Dialog */}
+      <Dialog open={isActionOpen} onOpenChange={setIsActionOpen}>
+        <DialogContent className="max-w-md rounded-[2.5rem] p-8">
+          <DialogHeader className="space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
+              <BookOpen className="w-8 h-8" />
+            </div>
+            <div className="text-center space-y-2">
+              <DialogTitle className="text-2xl font-black tracking-tight">Question Manager</DialogTitle>
+              <DialogDescription className="font-bold text-slate-500 italic px-4 leading-tight">
+                "{selectedRow?.text}"
+              </DialogDescription>
+            </div>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <Label className="font-bold">Question Text</Label>
-              <Textarea
-                placeholder="Enter the question..."
-                value={form.text}
-                onChange={e => setForm({...form, text: e.target.value})}
-              />
+          <div className="grid grid-cols-1 gap-4 py-6">
+            <Button size="lg" className="h-20 justify-start gap-4 rounded-3xl text-xl font-black shadow-xl shadow-primary/10" onClick={() => handleEdit(selectedRow)}>
+              <div className="bg-white/20 p-3 rounded-2xl"><Edit className="w-6 h-6" /></div>
+              Edit Curriculum
+            </Button>
+            <Button variant="outline" size="lg" className="h-20 justify-start gap-4 rounded-3xl text-xl font-black text-destructive border-destructive/20 hover:bg-destructive/5 shadow-sm" onClick={() => handleDelete(selectedRow?.id)}>
+              <div className="bg-destructive/10 p-3 rounded-2xl text-destructive"><Trash2 className="w-6 h-6" /></div>
+              Delete Record
+            </Button>
+          </div>
+          <Button variant="ghost" onClick={() => setIsActionOpen(false)} className="w-full font-black text-slate-400 uppercase text-xs tracking-widest mt-2">Close Manager</Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-[2.5rem] p-10">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-black tracking-tight">{editingQuestion ? "Modify Curriculum" : "New Curriculum Entry"}</DialogTitle>
+            <DialogDescription className="text-lg font-medium text-slate-500">Provide official details for the Zimbabwe test bank.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-8 py-8">
+            <div className="space-y-3">
+              <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Official Question Text</Label>
+              <Textarea placeholder="Enter the question..." className="min-h-[120px] rounded-2xl text-lg font-bold border-slate-200 focus:ring-primary/20" value={form.text} onChange={e => setForm({...form, text: e.target.value})} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="font-bold">Category</Label>
-                <Input
-                  placeholder="e.g. General Rules"
-                  value={form.category}
-                  onChange={e => setForm({...form, category: e.target.value})}
-                />
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Category</Label>
+                <Input placeholder="e.g. Rules of Road" className="h-14 rounded-2xl font-bold border-slate-200" value={form.category} onChange={e => setForm({...form, category: e.target.value})} />
               </div>
-              <div className="space-y-2">
-                <Label className="font-bold">Difficulty</Label>
+              <div className="space-y-3">
+                <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Difficulty</Label>
                 <Select value={form.difficulty} onValueChange={v => setForm({...form, difficulty: v as any})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="easy">Easy</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="hard">Hard</SelectItem>
-                  </SelectContent>
+                  <SelectTrigger className="h-14 rounded-2xl font-bold border-slate-200"><SelectValue /></SelectTrigger>
+                  <SelectContent className="rounded-xl border-slate-200"><SelectItem value="easy">Easy</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="hard">Hard</SelectItem></SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-4">
-              <Label className="font-bold">Options</Label>
-              {form.options.map((opt, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 cursor-pointer ${form.correctAnswer === i ? 'border-primary bg-primary text-white' : 'border-muted'}`}
-                    onClick={() => setForm({...form, correctAnswer: i})}
-                  >
-                    {i + 1}
+              <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Answer Options</Label>
+              <div className="grid grid-cols-1 gap-4">
+                {form.options.map((opt, i) => (
+                  <div key={i} className={cn("flex items-center gap-4 p-3 rounded-2xl border-2 transition-all", form.correctAnswer === i ? "border-primary bg-primary/5" : "border-slate-100")}>
+                    <button className={cn("w-10 h-10 rounded-xl border-2 flex items-center justify-center shrink-0 font-black transition-all", form.correctAnswer === i ? "bg-primary border-primary text-white shadow-lg shadow-primary/30" : "border-slate-200 text-slate-400 hover:border-slate-400")} onClick={() => setForm({...form, correctAnswer: i})}>
+                      {i + 1}
+                    </button>
+                    <Input placeholder={`Provide option ${i + 1}...`} className="border-0 bg-transparent shadow-none focus-visible:ring-0 text-lg font-bold" value={opt} onChange={e => { const newOpts = [...form.options]; newOpts[i] = e.target.value; setForm({...form, options: newOpts}); }} />
                   </div>
-                  <Input
-                    placeholder={`Option ${i + 1}`}
-                    value={opt}
-                    onChange={e => {
-                      const newOpts = [...form.options];
-                      newOpts[i] = e.target.value;
-                      setForm({...form, options: newOpts});
-                    }}
-                  />
-                </div>
-              ))}
-              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Tip: Click the number to mark it as the correct answer.</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="font-bold">Explanation</Label>
-              <Textarea
-                placeholder="Explain why the answer is correct..."
-                value={form.explanation}
-                onChange={e => setForm({...form, explanation: e.target.value})}
-              />
+                ))}
+              </div>
             </div>
 
             <div className="space-y-3">
-              <Label className="font-bold">Question Image (Optional)</Label>
+              <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Highway Code Explanation</Label>
+              <Textarea placeholder="Explain why this is correct..." className="min-h-[100px] rounded-2xl font-medium border-slate-200" value={form.explanation} onChange={e => setForm({...form, explanation: e.target.value})} />
+            </div>
 
+            <div className="space-y-4">
+              <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Curriculum Visual (Diagram/Sign)</Label>
               {form.imageUrl && (
-                <div className="relative w-full aspect-video border-2 border-dashed rounded-xl flex items-center justify-center bg-muted overflow-hidden group">
-                  <img src={form.imageUrl} className="w-full h-full object-contain p-2" />
-                  <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="h-8 gap-1.5 font-bold bg-primary hover:bg-primary/90 shadow-lg border border-white/20"
-                      onClick={identifyFromImage}
-                      disabled={isIdentifying}
-                    >
-                      {isIdentifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                <div className="relative w-full aspect-video rounded-3xl bg-slate-900 overflow-hidden group border-8 border-slate-100 shadow-inner">
+                  <img src={form.imageUrl} className="w-full h-full object-contain p-4" />
+                  <div className="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button type="button" className="h-14 px-8 rounded-2xl font-black gap-2 bg-primary shadow-xl shadow-primary/30 hover:scale-105 transition-transform" onClick={identifyFromImage} disabled={isIdentifying}>
+                      {isIdentifying ? <Loader2 className="animate-spin" /> : <Sparkles />}
                       {isIdentifying ? "Scanning..." : "AI Suggest Question"}
                     </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="h-8 gap-1"
-                      onClick={() => setForm({...form, imageUrl: ""})}
-                      disabled={isIdentifying}
-                    >
-                      <X className="w-3 h-3" /> Remove
+                    <Button type="button" variant="destructive" className="h-14 px-8 rounded-2xl font-black gap-2 shadow-xl shadow-destructive/30 hover:scale-105 transition-transform" onClick={() => setForm({...form, imageUrl: ""})}>
+                      <X className="w-5 h-5" /> Remove Image
                     </Button>
                   </div>
                 </div>
               )}
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <p className="text-[10px] text-muted-foreground uppercase font-black">Option A: Upload File</p>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="cursor-pointer"
-                  />
-                </div>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground font-bold">Or</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-[10px] text-muted-foreground uppercase font-black">Option B: Paste Image URL</p>
-                  <Input
-                    placeholder="https://..."
-                    value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl}
-                    onChange={e => setForm({...form, imageUrl: e.target.value})}
-                  />
-                </div>
+              <div className="bg-slate-50 p-8 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col gap-6">
+                <div className="space-y-2"><p className="text-[10px] font-black uppercase text-slate-400 text-center tracking-widest mb-4">Option A: Professional Upload</p><Input type="file" accept="image/*" onChange={handleFileUpload} className="h-16 rounded-2xl bg-white border-slate-200 shadow-sm pt-4 pl-6 font-bold cursor-pointer" /></div>
+                <div className="relative"><div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div><div className="relative flex justify-center text-[10px] uppercase font-black"><span className="bg-slate-50 px-4 text-slate-400">Or Access via Cloud</span></div></div>
+                <div className="space-y-2"><p className="text-[10px] font-black uppercase text-slate-400 text-center tracking-widest mb-4">Option B: Remote URL</p><Input placeholder="https://..." className="h-16 rounded-2xl bg-white border-slate-200 shadow-sm pl-6 text-lg font-bold" value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl} onChange={e => setForm({...form, imageUrl: e.target.value})} /></div>
               </div>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={createQ.isPending || updateQ.isPending}>
-              {editingQuestion ? "Update Question" : "Create Question"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Action Choice Dialog */}
-      <Dialog open={isActionOpen} onOpenChange={setIsActionOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <div className="flex items-center gap-2 text-primary mb-2">
-              <List className="w-5 h-5" />
-              <span className="text-xs font-black uppercase tracking-widest">Question Actions</span>
-            </div>
-            <DialogTitle className="text-xl">What would you like to do?</DialogTitle>
-            <DialogDescription className="line-clamp-2 mt-2 font-medium">
-              "{selectedRow?.text}"
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-1 gap-3 py-4">
-            <Button
-              size="lg"
-              className="h-16 justify-start gap-4 text-lg font-bold"
-              onClick={() => handleEdit(selectedRow)}
-            >
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Edit className="w-6 h-6" />
-              </div>
-              Edit Question Details
-            </Button>
-
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-16 justify-start gap-4 text-lg font-bold text-destructive hover:bg-destructive/5 border-destructive/20"
-              onClick={() => handleDelete(selectedRow?.id)}
-            >
-              <div className="bg-destructive/10 p-2 rounded-lg text-destructive">
-                <Trash2 className="w-6 h-6" />
-              </div>
-              Delete Permanently
-            </Button>
-          </div>
-
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsActionOpen(false)} className="w-full font-bold">
-              Cancel
+          <DialogFooter className="sticky bottom-0 bg-white pt-6 border-t mt-8">
+            <Button variant="ghost" size="lg" className="rounded-2xl font-black text-slate-400 uppercase tracking-widest" onClick={() => setIsDialogOpen(false)}>Discard</Button>
+            <Button size="lg" className="h-16 px-12 rounded-2xl font-black text-lg shadow-xl shadow-primary/25" onClick={handleSubmit} disabled={createQ.isPending || updateQ.isPending}>
+              {editingQuestion ? "Publish Changes" : "Publish to Bank"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -9,26 +9,45 @@ export interface VoiceOptions {
 }
 
 export const speak = (text: string, options: VoiceOptions = {}) => {
-  if (!('speechSynthesis' in window)) return;
-
-  const {
-    language = localStorage.getItem('vid_voice_lang') || 'en-GB',
-    rate = parseFloat(localStorage.getItem('vid_voice_rate') || '0.9'),
-    pitch = 1.0
-  } = options;
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    console.warn("Speech synthesis not supported in this environment");
+    return;
+  }
 
   // Cancel any ongoing speech
   window.speechSynthesis.cancel();
 
+  const lang = localStorage.getItem('vid_voice_lang') || 'en-GB';
+  const rateVal = localStorage.getItem('vid_voice_rate') || '0.9';
+
+  const {
+    language = lang,
+    rate = parseFloat(rateVal),
+    pitch = 1.0
+  } = options;
+
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = language;
-  utterance.rate = rate;
+  utterance.rate = isNaN(rate) ? 0.9 : rate;
   utterance.pitch = pitch;
 
-  window.speechSynthesis.speak(utterance);
+  // On some mobile devices, voices need to be loaded first
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.speak(utterance);
+    };
+  } else {
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // Error handling
+  utterance.onerror = (event) => {
+    console.error("SpeechSynthesisUtterance error", event);
+  };
 };
 
 export const stopSpeaking = () => {
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
 };

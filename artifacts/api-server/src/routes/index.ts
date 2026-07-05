@@ -6,6 +6,7 @@ import testsRouter from "./tests";
 import progressRouter from "./progress";
 import signsRouter from "./signs";
 import adminRouter from "./admin";
+import garageRouter from "./garage";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use("/tests", testsRouter);
 router.use("/progress", progressRouter);
 router.use("/signs", signsRouter);
 router.use("/admin", adminRouter);
+router.use("/garage", garageRouter);
 
 export default router;

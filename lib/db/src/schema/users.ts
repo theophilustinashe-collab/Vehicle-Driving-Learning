@@ -16,10 +16,13 @@ export const usersTable = pgTable("users", {
   soundEnabled: integer("sound_enabled").notNull().default(1), // 1 for true, 0 for false
   role: userRoleEnum("role").notNull().default("learner"),
   xp: integer("xp").notNull().default(0),
+  coins: integer("coins").notNull().default(0),
   level: integer("level").notNull().default(1),
+  unlockedItems: text("unlocked_items").default("[]"), // JSON string of IDs
   streak: integer("streak").notNull().default(0),
   totalTests: integer("total_tests").notNull().default(0),
   passRate: real("pass_rate"),
+  lastDailyChallengeAt: timestamp("last_daily_challenge_at"),
   lastActiveAt: timestamp("last_active_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

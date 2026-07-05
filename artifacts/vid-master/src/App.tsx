@@ -53,6 +53,7 @@ import Leaderboard from "@/pages/Leaderboard";
 import Progress from "@/pages/Progress";
 import MistakesPage from "@/pages/Mistakes";
 import ExamGuidePage from "@/pages/ExamGuide";
+import GaragePage from "@/pages/Garage";
 import SettingsPage from "@/pages/Settings";
 import SupportPage from "@/pages/Support";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -122,6 +123,7 @@ function Router() {
                 <Route path="/bookmarks" component={Bookmarks} />
                 <Route path="/leaderboard" component={Leaderboard} />
                 <Route path="/progress" component={Progress} />
+                <Route path="/garage" component={GaragePage} />
                 <Route path="/mistakes" component={MistakesPage} />
                 <Route path="/exam-guide" component={ExamGuidePage} />
                 <Route path="/settings" component={SettingsPage} />

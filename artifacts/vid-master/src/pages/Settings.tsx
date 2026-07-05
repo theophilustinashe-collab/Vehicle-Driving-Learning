@@ -29,6 +29,7 @@ const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   city: z.string().min(2, "City must be at least 2 characters"),
   phone: z.string().optional(),
+  avatarUrl: z.string().optional(),
   language: z.string(),
   soundEnabled: z.boolean(),
   voiceLanguage: z.string(),
@@ -51,6 +52,7 @@ export default function SettingsPage() {
       name: user?.name || "",
       city: user?.city || "",
       phone: user?.phone || "",
+      avatarUrl: user?.avatarUrl || "",
       language: user?.language || "en",
       soundEnabled: user?.soundEnabled === 1,
       voiceLanguage: localStorage.getItem('vid_voice_lang') || "en-GB",
@@ -64,6 +66,7 @@ export default function SettingsPage() {
         name: user.name,
         city: user.city || "",
         phone: user.phone || "",
+        avatarUrl: user.avatarUrl || "",
         language: user.language || "en",
         soundEnabled: user.soundEnabled === 1,
         voiceLanguage: localStorage.getItem('vid_voice_lang') || "en-GB",
@@ -71,6 +74,21 @@ export default function SettingsPage() {
       });
     }
   }, [user, form]);
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({ title: "File too large", description: "Please upload an image smaller than 2MB.", variant: "destructive" });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue("avatarUrl", reader.result as string, { shouldDirty: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const updateProfile = useMutation({
     mutationFn: async (data: z.infer<typeof profileSchema>) => {
@@ -89,6 +107,7 @@ export default function SettingsPage() {
           name: data.name,
           city: data.city,
           phone: data.phone,
+          avatarUrl: data.avatarUrl,
           language: data.language,
           soundEnabled: data.soundEnabled ? 1 : 0,
         }),
@@ -202,6 +221,36 @@ export default function SettingsPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit((d) => updateProfile.mutate(d))} className="space-y-6">
+              {/* Profile Picture Upload */}
+              <div className="flex flex-col items-center gap-4 py-2">
+                <div className="relative group">
+                  <div className="w-24 h-24 rounded-2xl bg-muted overflow-hidden border-2 border-slate-100 shadow-inner flex items-center justify-center">
+                    {form.watch("avatarUrl") ? (
+                      <img src={form.watch("avatarUrl")} className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-10 h-10 text-slate-300" />
+                    )}
+                  </div>
+                  <label
+                    htmlFor="avatar-upload"
+                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-2xl"
+                  >
+                    <Smartphone className="w-6 h-6 text-white" />
+                  </label>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                  />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-slate-900">Profile Picture</p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-0.5">Tap to upload</p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, questionsTable, testSessionsTable, usersTable, mistakesTable } from "@workspace/db";
+import { db, questionsTable, testSessionsTable, usersTable, mistakesTable, questionProgressTable } from "@workspace/db";
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import { requireAuth } from "../middlewares/auth";
@@ -8,7 +8,7 @@ import { logger } from "../lib/logger";
 const router = Router();
 const TEST_QUESTIONS = 25;
 const TEST_DURATION_SECONDS = 8 * 60; // 8 minutes
-const PASS_THRESHOLD = 1.0;
+const PASS_THRESHOLD = 0.88; // 22 out of 25 (88%) is the widely used standard
 
 router.post("/start", requireAuth, async (req, res) => {
   try {
@@ -152,39 +152,75 @@ router.post("/:sessionId/submit", requireAuth, async (req, res) => {
       completedAt: now,
     }).where(eq(testSessionsTable.sessionId, sessionId));
 
-    // Record mistakes
-    const mistakes = answerDetails.filter(a => a && !a.isCorrect);
-    for (const m of mistakes) {
-      if (!m) continue;
+    // Process Mastery & Progress
+    for (const a of answerDetails) {
+      if (!a) continue;
       try {
-        await db.insert(mistakesTable).values({
+        const isCorrect = a.isCorrect;
+
+        // Update Question Progress
+        await db.insert(questionProgressTable).values({
           userId,
-          questionId: m.questionId,
-          incorrectCount: 1,
+          questionId: a.questionId,
+          correctStreak: isCorrect ? 1 : 0,
+          totalCorrect: isCorrect ? 1 : 0,
+          totalIncorrect: isCorrect ? 0 : 1,
+          isMastered: false,
           lastAttemptedAt: now,
         }).onConflictDoUpdate({
-          target: [mistakesTable.userId, mistakesTable.questionId],
+          target: [questionProgressTable.userId, questionProgressTable.questionId],
           set: {
-            incorrectCount: sql`${mistakesTable.incorrectCount} + 1`,
-            lastAttemptedAt: now
+            correctStreak: isCorrect
+              ? sql`${questionProgressTable.correctStreak} + 1`
+              : 0,
+            totalCorrect: isCorrect
+              ? sql`${questionProgressTable.totalCorrect} + 1`
+              : questionProgressTable.totalCorrect,
+            totalIncorrect: !isCorrect
+              ? sql`${questionProgressTable.totalIncorrect} + 1`
+              : questionProgressTable.totalIncorrect,
+            // Mastery check: 3 correct in a row OR consistently high performance
+            isMastered: isCorrect
+              ? sql`(${questionProgressTable.correctStreak} + 1) >= 3`
+              : false,
+            lastAttemptedAt: now,
           },
         });
+
+        // Maintain old mistakes table for compatibility if needed, or rely on progress
+        if (!isCorrect) {
+          await db.insert(mistakesTable).values({
+            userId,
+            questionId: a.questionId,
+            incorrectCount: 1,
+            lastAttemptedAt: now,
+          }).onConflictDoUpdate({
+            target: [mistakesTable.userId, mistakesTable.questionId],
+            set: {
+              incorrectCount: sql`${mistakesTable.incorrectCount} + 1`,
+              lastAttemptedAt: now
+            },
+          });
+        }
       } catch (err) {
-        logger.error({ err, userId, qId: m.questionId }, "Failed to record mistake");
+        logger.error({ err, userId, qId: a.questionId }, "Failed to update question progress");
       }
     }
 
     // Update user XP and stats
     const xpGain = passed ? 100 : 30;
+    const coinsGain = passed ? 200 : 50; // New economy: +200 coins for pass, +50 for attempt
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
     if (user) {
       const newXp = (user.xp ?? 0) + xpGain;
+      const newCoins = (user.coins ?? 0) + coinsGain;
       const newTotalTests = (user.totalTests ?? 0) + 1;
       const currentPassRate = user.passRate ?? 0;
       const newPassRate = ((currentPassRate * (newTotalTests - 1)) + (passed ? 100 : 0)) / newTotalTests;
       const newLevel = Math.floor(newXp / 500) + 1;
       await db.update(usersTable).set({
         xp: newXp,
+        coins: newCoins,
         totalTests: newTotalTests,
         passRate: newPassRate,
         level: newLevel,

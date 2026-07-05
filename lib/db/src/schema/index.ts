@@ -5,3 +5,5 @@ export * from "./roadSigns";
 export * from "./bookmarks";
 export * from "./badges";
 export * from "./mistakes";
+export * from "./questionProgress";
+export * from "./archives";
