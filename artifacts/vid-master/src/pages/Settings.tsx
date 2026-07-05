@@ -78,50 +78,80 @@ export default function SettingsPage() {
     }
   }, [user, form]);
 
+  // NATIVE BRIDGE LISTENER
+  useEffect(() => {
+    const handleNativeMessage = async (event: any) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'LOCATION_SUCCESS') {
+          const { latitude, longitude } = data.coords;
+          const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+          const geoData = await response.json();
+          const cityName = geoData.city || geoData.locality || geoData.principalSubdivision || "Zimbabwe";
+
+          form.setValue("city", cityName, { shouldDirty: true });
+          toast({ title: "Location Detected", description: `Updated to ${cityName}.` });
+          setIsLocating(false);
+        } else if (data.type === 'LOCATION_ERROR') {
+          setIsLocating(false);
+          toast({ title: "Access Denied", description: data.message, variant: "destructive" });
+        }
+      } catch (e) {
+        // Not our message
+      }
+    };
+
+    window.addEventListener("message", handleNativeMessage);
+    // Also listen for React Native's unique event name
+    document.addEventListener("message", handleNativeMessage as any);
+
+    return () => {
+      window.removeEventListener("message", handleNativeMessage);
+      document.removeEventListener("message", handleNativeMessage as any);
+    };
+  }, [form]);
+
   const requestLocation = async () => {
     setIsLocating(true);
     setShowLocationDialog(false);
 
-    if (!navigator.geolocation) {
-      toast({ title: "Not Supported", description: "Your device does not support geolocation.", variant: "destructive" });
-      setIsLocating(false);
-      return;
-    }
+    // 1. Check if we are running inside the Native App (WebView)
+    const isNative = (window as any).ReactNativeWebView !== undefined;
 
-    // Stabilized Options for consistent Android/Web success
-    const options = {
-      enableHighAccuracy: false, // Set to false to work without strict GPS signal
-      timeout: 10000,
-      maximumAge: 60000
-    };
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
-          const data = await response.json();
-
-          const cityName = data.city || data.locality || data.principalSubdivision || "Zimbabwe";
-          form.setValue("city", cityName, { shouldDirty: true });
-          toast({ title: "Location Detected", description: `Updated to ${cityName}.` });
-        } catch (error) {
-          toast({ title: "Detection Failed", description: "City service unreachable. Please try again.", variant: "destructive" });
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      (error) => {
+    if (isNative) {
+      // Use the Bridge (Professional Native Method)
+      (window as any).ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_LOCATION' }));
+    } else {
+      // Fallback for Web/Browser
+      if (!navigator.geolocation) {
+        toast({ title: "Not Supported", description: "Your device does not support geolocation.", variant: "destructive" });
         setIsLocating(false);
-        let msg = "Please enable location permissions in settings.";
-        // Error code 1 means PERMISSION_DENIED
-        if (error.code === 1) {
-          msg = "Permission denied. If you allowed it in the popup, please also check your browser/phone privacy settings.";
-        }
-        toast({ title: "Access Denied", description: msg, variant: "destructive" });
-      },
-      options
-    );
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+            const data = await response.json();
+            const cityName = data.city || data.locality || data.principalSubdivision || "Zimbabwe";
+            form.setValue("city", cityName, { shouldDirty: true });
+            toast({ title: "Location Detected", description: `Updated to ${cityName}.` });
+          } catch (error) {
+            toast({ title: "Detection Failed", description: "City service unreachable.", variant: "destructive" });
+          } finally {
+            setIsLocating(false);
+          }
+        },
+        (error) => {
+          setIsLocating(false);
+          toast({ title: "Access Denied", description: "Please enable location in browser settings.", variant: "destructive" });
+        },
+        { timeout: 10000 }
+      );
+    }
   };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,9 +1,10 @@
 import { registerRootComponent } from 'expo';
 import Constants from 'expo-constants';
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, StatusBar, View, Text, Button, Platform, BackHandler } from 'react-native';
+import { StyleSheet, StatusBar, View, Text, Button, Platform, BackHandler, Alert } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 
 function AppContent() {
   const [error, setError] = useState(null);
@@ -18,14 +19,48 @@ function AppContent() {
     const onBackPress = () => {
       if (canGoBack && webViewRef.current) {
         webViewRef.current.goBack();
-        return true; // Prevent default (exiting app)
+        return true;
       }
-      return false; // Allow default (exiting app)
+      return false;
     };
 
     const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => subscription.remove();
   }, [canGoBack]);
+
+  // NATIVE GPS HANDLER (Communication Bridge)
+  const handleMessage = async (event) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+
+      if (data.type === 'REQUEST_LOCATION') {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+
+        if (status !== 'granted') {
+          webViewRef.current?.postMessage(JSON.stringify({
+            type: 'LOCATION_ERROR',
+            message: 'Permission denied by user.'
+          }));
+          return;
+        }
+
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        // Send coordinates back to web view
+        webViewRef.current?.postMessage(JSON.stringify({
+          type: 'LOCATION_SUCCESS',
+          coords: {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude
+          }
+        }));
+      }
+    } catch (e) {
+      console.warn("Bridge Error:", e);
+    }
+  };
 
   // Fallback IP for development
   const hardcodedIp = '192.168.1.63';
@@ -58,6 +93,7 @@ function AppContent() {
           key={key}
           source={{ uri: serverUrl }}
           style={styles.webview}
+          onMessage={handleMessage}
           onError={(e) => setError(e.nativeEvent.description)}
           onHttpError={(e) => setError(`HTTP Error: ${e.nativeEvent.statusCode}`)}
           onNavigationStateChange={(navState) => {
@@ -67,6 +103,15 @@ function AppContent() {
           domStorageEnabled={true}
           startInLoadingState={true}
           originWhitelist={['*']}
+          geolocationEnabled={true}
+          onGeolocationPermissionsShowPrompt={(event) => {
+            // Automatically allow geolocation permission inside the WebView
+            return {
+              origin: event.origin,
+              allow: true,
+              retain: true,
+            };
+          }}
         />
       )}
     </SafeAreaView>
@@ -74,7 +119,6 @@ function AppContent() {
 }
 
 function App() {
-  // If we are on web, show a message instead of crashing
   if (Platform.OS === 'web') {
     return (
       <View style={styles.errorContainer}>
