@@ -1,0 +1,14 @@
+node_modules
+.git
+.build
+.local
+.agents
+*.log
+artifacts/vid-master/android
+artifacts/vid-master/ios-capacitor
+artifacts/vid-master/dist
+artifacts/api-server/dist
+lib/*/dist
+attached_assets
+.expo
+.idea
