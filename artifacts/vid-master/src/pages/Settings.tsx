@@ -177,12 +177,12 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-center md:text-left">
+              <div className="text-center md:text-left">
               <div className="text-5xl font-black tracking-tighter mb-1">
-                #{(dashboard as any)?.numericRank || "N/A"}
+                #{ (dashboard as any)?.numericRank ?? "?" }
               </div>
               <p className="text-sm font-bold uppercase tracking-widest opacity-80 flex items-center justify-center md:justify-start gap-1">
-                <Shield className="w-3 h-3" /> {dashboard?.rank || "Beginner"} Status
+                <Shield className="w-3 h-3" /> {dashboard?.rank ?? "Learner"} Status
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4 w-full md:w-auto">
@@ -316,7 +316,7 @@ export default function SettingsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold">Display Language</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || "en"}>
                         <FormControl>
                           <SelectTrigger className="h-11">
                             <SelectValue />
@@ -344,7 +344,7 @@ export default function SettingsPage() {
                         <FormDescription>Play sounds during tests.</FormDescription>
                       </div>
                       <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        <Switch checked={!!field.value} onCheckedChange={field.onChange} />
                       </FormControl>
                     </FormItem>
                   )}
@@ -356,7 +356,7 @@ export default function SettingsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold">Voice Narrator Accent</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || "en-GB"}>
                         <FormControl>
                           <SelectTrigger className="h-11">
                             <SelectValue />
@@ -378,7 +378,7 @@ export default function SettingsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold">Narration Speed</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || "0.9"}>
                         <FormControl>
                           <SelectTrigger className="h-11">
                             <SelectValue />
