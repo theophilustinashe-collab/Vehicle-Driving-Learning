@@ -52,7 +52,7 @@ export default function Dashboard() {
     return null;
   }, [leaderboard, user]);
 
-  const isStreakWarning = !dashboard?.dailyChallengeCompleted && new Date().getHours() >= 20;
+  const isStreakWarning = !(dashboard as any)?.dailyChallengeCompleted && new Date().getHours() >= 20;
 
   if (isLoading) {
     return (
@@ -99,7 +99,7 @@ export default function Dashboard() {
           >
             <div className="relative shrink-0">
               <Avatar className="w-12 h-12 border-2 border-primary">
-                {rival.avatarUrl && <AvatarImage src={rival.avatarUrl} className="object-cover" />}
+                {(rival as any).avatarUrl && <AvatarImage src={(rival as any).avatarUrl} className="object-cover" />}
                 <AvatarFallback className="text-[10px] bg-slate-800 text-primary font-black">
                 {rival.name ? rival.name.substring(0, 2).toUpperCase() : "??"}
               </AvatarFallback>
@@ -162,7 +162,7 @@ export default function Dashboard() {
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-black text-slate-900 tracking-tighter">{dashboard.masteredQuestions || 0}</div>
+            <div className="text-4xl font-black text-slate-900 tracking-tighter">{(dashboard as any).masteredQuestions || 0}</div>
             <p className="text-[10px] font-bold text-muted-foreground mt-4 uppercase">Questions Learned Perfectly</p>
           </CardContent>
         </Card>
@@ -183,7 +183,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Daily Challenge Section */}
-        {dashboard && !dashboard.dailyChallengeCompleted && (
+        {dashboard && !(dashboard as any).dailyChallengeCompleted && (
           <Card className="border-0 shadow-xl ring-1 ring-border rounded-[2.5rem] bg-gradient-to-br from-primary to-primary/80 text-white overflow-hidden group">
             <CardContent className="p-8 space-y-6 relative">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
@@ -205,7 +205,7 @@ export default function Dashboard() {
         {/* Leaderboard Preview */}
         <Card className={cn(
           "border-0 shadow-xl ring-1 ring-border rounded-[2.5rem] overflow-hidden",
-          dashboard?.dailyChallengeCompleted ? "lg:col-span-2" : ""
+          (dashboard as any)?.dailyChallengeCompleted ? "lg:col-span-2" : ""
         )}>
           <CardHeader className="bg-slate-50 border-b py-4">
             <div className="flex items-center justify-between">
@@ -227,7 +227,7 @@ export default function Dashboard() {
                 <div key={entry.userId} className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <div className="text-xl">{idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉"}</div>
                   <Avatar className="w-10 h-10 shadow-sm border-2 border-white">
-                    {entry.avatarUrl && <AvatarImage src={entry.avatarUrl} />}
+                    {(entry as any).avatarUrl && <AvatarImage src={(entry as any).avatarUrl} />}
                     <AvatarFallback className="font-black text-xs bg-primary/10 text-primary">
                       {entry.name ? entry.name.substring(0, 2).toUpperCase() : "??"}
                     </AvatarFallback>

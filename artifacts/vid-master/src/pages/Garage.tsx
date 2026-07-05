@@ -21,10 +21,10 @@ export default function GaragePage() {
   const { toast } = useToast();
   const [isBuying, setIsIdentifying] = useState<string | null>(null);
 
-  const ownedItems = JSON.parse(user?.unlockedItems || "[]");
+  const ownedItems = JSON.parse((user as any)?.unlockedItems || "[]");
 
   const handleBuy = async (itemId: string, price: number) => {
-    if ((user?.coins || 0) < price) {
+    if (((user as any)?.coins || 0) < price) {
       toast({ title: "Insufficient Coins", description: "Take more tests to earn more VID Coins!", variant: "destructive" });
       return;
     }
@@ -81,7 +81,7 @@ export default function GaragePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {SHOP_ITEMS.map((item) => {
           const isOwned = ownedItems.includes(item.id);
-          const canAfford = (user?.coins || 0) >= item.price;
+          const canAfford = ((user as any)?.coins || 0) >= item.price;
 
           return (
             <Card key={item.id} className="border-0 shadow-xl ring-1 ring-slate-200/60 rounded-[2.5rem] overflow-hidden group">

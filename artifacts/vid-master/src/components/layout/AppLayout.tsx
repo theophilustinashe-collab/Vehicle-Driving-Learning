@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   PlayCircle,
+  Car,
   History as HistoryIcon,
   Octagon,
   BookOpen,
@@ -48,8 +49,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   });
   
   // Background data fetchers for sync
-  const { data: allQuestions } = useListQuestions({ limit: 1000 }, { query: { enabled: !!user && isOnline } });
-  const { data: allSigns } = useListSigns({}, { query: { enabled: !!user && isOnline } });
+  const { data: allQuestions } = useListQuestions({ limit: 1000 }, { query: { enabled: !!user && isOnline } as any });
+  const { data: allSigns } = useListSigns({}, { query: { enabled: !!user && isOnline } as any });
 
   const logout = useLogout();
 

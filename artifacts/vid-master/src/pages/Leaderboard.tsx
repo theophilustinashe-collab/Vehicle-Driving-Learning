@@ -80,7 +80,7 @@ export default function Leaderboard() {
                     
                     <div className="col-span-6 md:col-span-5 flex items-center gap-3">
                       <Avatar className={isTop3 ? 'ring-2 ring-primary ring-offset-2' : ''}>
-                        {entry.avatarUrl && <AvatarImage src={entry.avatarUrl} alt={entry.name} className="object-cover" />}
+                        {(entry as any).avatarUrl && <AvatarImage src={(entry as any).avatarUrl} alt={entry.name} className="object-cover" />}
                         <AvatarFallback className="font-bold bg-primary/10 text-primary">
                           {entry.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>

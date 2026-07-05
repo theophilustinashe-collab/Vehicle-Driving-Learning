@@ -25,14 +25,14 @@ export default function Signs() {
   const { data: onlineSigns, isLoading, error } = useListSigns({
     search: search.length > 2 ? search : undefined,
     category: category !== "all" ? category : undefined,
-  }, { query: { retry: false } });
+  }, { query: { retry: false } as any });
 
   const signs = useMemo(() => {
     if (onlineSigns && onlineSigns.length > 0) return onlineSigns;
 
     // If offline or error, use local data
     if (!navigator.onLine || error) {
-      const local = getOfflineSigns();
+      const local = getOfflineSigns() as any[];
       if (!local.length) return [];
 
       return local.filter(s => {

@@ -29,14 +29,14 @@ export default function Questions() {
     category: category !== "all" ? category : undefined,
     difficulty: difficulty !== "all" ? difficulty : undefined,
     limit: 500,
-  }, { query: { retry: false } });
+  }, { query: { retry: false } as any });
 
   const questions = useMemo(() => {
     if (onlineQuestions && onlineQuestions.length > 0) return onlineQuestions;
 
     // If offline or error, use local data
     if (!navigator.onLine || error) {
-      const local = getOfflineQuestions();
+      const local = getOfflineQuestions() as any[];
       if (!local.length) return [];
 
       return local.filter(q => {
@@ -157,7 +157,7 @@ export default function Questions() {
             )}
 
             <div className="space-y-3">
-              {dailyQuestion.options.map((opt, idx) => {
+              {(dailyQuestion as any).options.map((opt: string, idx: number) => {
                 const isCorrect = idx === dailyQuestion.correctAnswer;
                 const isSelected = idx === selectedAnswer;
 
@@ -308,7 +308,7 @@ export default function Questions() {
         </div>
       ) : (
         <div className="space-y-4">
-          {questions.map((q) => {
+          {(questions as any[]).map((q: any) => {
             const isBookmarked = bookmarkedIds.has(q.id);
             return (
               <Card key={q.id} className="overflow-hidden">
@@ -335,7 +335,7 @@ export default function Questions() {
                     <h3 className="text-lg font-semibold mb-6">{q.text}</h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                      {q.options.map((opt, idx) => (
+                      {(q.options as string[]).map((opt: string, idx: number) => (
                         <div 
                           key={idx} 
                           className={`p-3 rounded-md border text-sm flex items-start gap-3 ${idx === q.correctAnswer ? 'border-emerald-500 bg-emerald-50 text-emerald-900 font-medium' : 'bg-muted/30'}`}

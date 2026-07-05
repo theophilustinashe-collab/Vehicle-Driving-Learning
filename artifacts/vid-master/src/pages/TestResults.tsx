@@ -3,7 +3,7 @@ import { useGetTestResult } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, XCircle, ArrowLeft, RotateCcw, AlertTriangle, Share2, Trophy, Medal, Star } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowLeft, RotateCcw, AlertTriangle, Share2, Trophy, Medal, Star, BookOpen } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +26,7 @@ export default function TestResults() {
       const timer = setTimeout(() => setShowConfetti(false), 5000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [result]);
 
   if (!match || !sessionId) return null;
