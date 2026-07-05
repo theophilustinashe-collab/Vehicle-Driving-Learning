@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { User, MapPin, Trophy, Star, Shield, Loader2, Phone, Globe, Volume2, CloudDownload, Smartphone, Pencil, ArrowLeft, Navigation } from "lucide-react";
+import { User, MapPin, Trophy, Star, Shield, Loader2, Phone, Globe, Volume2, CloudDownload, Smartphone, Pencil, ArrowLeft, Navigation, Map } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { syncOfflineData } from "@/lib/offline";
 import { Link } from "wouter";
+import * as Location from 'expo-location';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +48,7 @@ export default function SettingsPage() {
   const queryClient = useQueryClient();
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -62,37 +64,6 @@ export default function SettingsPage() {
     },
   });
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) {
-      toast({ title: "Not Supported", description: "Geolocation is not supported by your device.", variant: "destructive" });
-      return;
-    }
-
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          // Using BigDataCloud's free reverse geocoding (no API key required for basic info)
-          const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
-          const data = await response.json();
-
-          const cityName = data.city || data.locality || data.principalSubdivision || "Zimbabwe";
-          form.setValue("city", cityName, { shouldDirty: true });
-          toast({ title: "Location Detected", description: `You are in ${cityName}.` });
-        } catch (error) {
-          toast({ title: "Detection Failed", description: "Could not retrieve city name from coordinates.", variant: "destructive" });
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      (error) => {
-        setIsLocating(false);
-        toast({ title: "Access Denied", description: "Please enable location permissions in your settings.", variant: "destructive" });
-      }
-    );
-  };
-
   useEffect(() => {
     if (user) {
       form.reset({
@@ -107,6 +78,45 @@ export default function SettingsPage() {
       });
     }
   }, [user, form]);
+
+  const requestLocation = async () => {
+    setIsLocating(true);
+    setShowLocationDialog(false);
+
+    try {
+      // 1. Request permissions with a professional native handler
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== 'granted') {
+        toast({
+          title: "Permission Denied",
+          description: "Location access is required for auto-detection.",
+          variant: "destructive"
+        });
+        setIsLocating(false);
+        return;
+      }
+
+      // 2. Get coordinates
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const { latitude, longitude } = location.coords;
+
+      // 3. Reverse Geocode (Get city name)
+      const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+      const data = await response.json();
+
+      const cityName = data.city || data.locality || data.principalSubdivision || "Zimbabwe";
+      form.setValue("city", cityName, { shouldDirty: true });
+      toast({ title: "Location Detected", description: `Updated to ${cityName}.` });
+    } catch (error) {
+      toast({ title: "Detection Failed", description: "Make sure your GPS is on and try again.", variant: "destructive" });
+    } finally {
+      setIsLocating(false);
+    }
+  };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -125,7 +135,6 @@ export default function SettingsPage() {
 
   const updateProfile = useMutation({
     mutationFn: async (data: z.infer<typeof profileSchema>) => {
-      // Save voice settings to local storage
       localStorage.setItem('vid_voice_lang', data.voiceLanguage);
       localStorage.setItem('vid_voice_rate', data.voiceRate);
 
@@ -155,7 +164,7 @@ export default function SettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["getMe"] });
-      toast({ title: "Settings Saved", description: "Your profile and voice preferences have been updated." });
+      toast({ title: "Settings Saved", description: "Your profile has been updated." });
     },
     onError: (error: Error) => {
       toast({ title: "Update Failed", description: error.message, variant: "destructive" });
@@ -320,7 +329,7 @@ export default function SettingsPage() {
                           variant="ghost"
                           size="sm"
                           className="h-6 px-2 text-[10px] font-black uppercase text-primary hover:bg-primary/10 gap-1"
-                          onClick={detectLocation}
+                          onClick={() => setShowLocationDialog(true)}
                           disabled={isLocating}
                         >
                           {isLocating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3" />}
@@ -501,6 +510,32 @@ export default function SettingsPage() {
           </AlertDialog>
         </CardContent>
       </Card>
+
+      {/* Custom Location Permission Dialog */}
+      <AlertDialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
+        <AlertDialogContent className="rounded-[2.5rem] max-w-[90vw] md:max-w-md p-8">
+          <AlertDialogHeader className="space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
+              <Map className="w-8 h-8" />
+            </div>
+            <div className="text-center space-y-2">
+              <AlertDialogTitle className="text-2xl font-black">Enable Location?</AlertDialogTitle>
+              <AlertDialogDescription className="font-bold text-slate-500 leading-relaxed">
+                We use your location to automatically pinpoint your city and provide nearby VID depot information.
+              </AlertDialogDescription>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-3 pt-6">
+            <AlertDialogCancel className="rounded-2xl h-12 font-black border-2 flex-1 mt-0">Maybe Later</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-primary text-white hover:bg-primary/90 rounded-2xl h-12 font-black flex-1 shadow-lg shadow-primary/20"
+              onClick={requestLocation}
+            >
+              Allow Access
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
