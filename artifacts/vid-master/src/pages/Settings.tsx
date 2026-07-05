@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { User, MapPin, Trophy, Star, Shield, Loader2, Phone, Globe, Volume2, CloudDownload, Smartphone, Pencil, ArrowLeft } from "lucide-react";
+import { User, MapPin, Trophy, Star, Shield, Loader2, Phone, Globe, Volume2, CloudDownload, Smartphone, Pencil, ArrowLeft, Navigation } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -46,6 +46,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -60,6 +61,37 @@ export default function SettingsPage() {
       voiceRate: localStorage.getItem('vid_voice_rate') || "0.9",
     },
   });
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      toast({ title: "Not Supported", description: "Geolocation is not supported by your device.", variant: "destructive" });
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          // Using BigDataCloud's free reverse geocoding (no API key required for basic info)
+          const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+          const data = await response.json();
+
+          const cityName = data.city || data.locality || data.principalSubdivision || "Zimbabwe";
+          form.setValue("city", cityName, { shouldDirty: true });
+          toast({ title: "Location Detected", description: `You are in ${cityName}.` });
+        } catch (error) {
+          toast({ title: "Detection Failed", description: "Could not retrieve city name from coordinates.", variant: "destructive" });
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        setIsLocating(false);
+        toast({ title: "Access Denied", description: "Please enable location permissions in your settings.", variant: "destructive" });
+      }
+    );
+  };
 
   useEffect(() => {
     if (user) {
@@ -281,7 +313,20 @@ export default function SettingsPage() {
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold">City</FormLabel>
+                      <FormLabel className="font-bold flex items-center justify-between">
+                        City
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[10px] font-black uppercase text-primary hover:bg-primary/10 gap-1"
+                          onClick={detectLocation}
+                          disabled={isLocating}
+                        >
+                          {isLocating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3" />}
+                          Detect
+                        </Button>
+                      </FormLabel>
                       <FormControl>
                         <Input className="h-11" {...field} />
                       </FormControl>
