@@ -294,11 +294,11 @@ export default function TestPage() {
            </div>
 
            {isLastQuestion ? (
-             <Button size="sm" onClick={handleSubmit} disabled={submitTest.isPending} className="bg-emerald-600 hover:bg-emerald-700 font-bold h-10 px-6 shadow-lg shadow-emerald-500/20">
+             <Button size="sm" onClick={handleSubmit} disabled={submitTest.isPending || !isAnswered} className="bg-emerald-600 hover:bg-emerald-700 font-bold h-10 px-6 shadow-lg shadow-emerald-500/20 disabled:opacity-50">
                {submitTest.isPending ? "Submitting..." : "Finish Exam"}
              </Button>
            ) : (
-             <Button size="sm" onClick={handleNext} className="font-bold h-10 px-8 shadow-lg shadow-primary/20">
+             <Button size="sm" onClick={handleNext} disabled={!isAnswered} className="font-bold h-10 px-8 shadow-lg shadow-primary/20 disabled:opacity-50">
                Next <ChevronRight className="w-4 h-4 ml-1" />
              </Button>
            )}

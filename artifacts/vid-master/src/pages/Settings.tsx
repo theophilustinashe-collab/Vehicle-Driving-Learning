@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { User, MapPin, Trophy, Star, Shield, Loader2, Phone, Globe, Volume2, CloudDownload, Smartphone } from "lucide-react";
+import { User, MapPin, Trophy, Star, Shield, Loader2, Phone, Globe, Volume2, CloudDownload, Smartphone, Pencil } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -235,8 +235,11 @@ export default function SettingsPage() {
                     htmlFor="avatar-upload"
                     className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-2xl"
                   >
-                    <Smartphone className="w-6 h-6 text-white" />
+                    <Pencil className="w-6 h-6 text-white" />
                   </label>
+                  <div className="absolute -bottom-1 -right-1 bg-primary text-white p-1.5 rounded-full shadow-lg border-2 border-white pointer-events-none">
+                    <Pencil className="w-3 h-3" />
+                  </div>
                   <input
                     id="avatar-upload"
                     type="file"
