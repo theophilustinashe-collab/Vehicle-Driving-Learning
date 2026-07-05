@@ -1,7 +1,7 @@
 services:
   # Backend API Server
   - type: web
-    name: vid-master-api
+    name: vehicle-driving-learning-api
     runtime: docker
     dockerFilePath: ./Dockerfile
     plan: free
@@ -16,9 +16,9 @@ services:
         generateValue: true
     healthCheckPath: /api/healthz
 
-  # Frontend Web App (Web Service for better reliability in monorepos)
+  # Frontend Web App
   - type: web
-    name: vid-master-web
+    name: vehicle-driving-learning
     runtime: node
     plan: free
     buildCommand: pnpm install --no-frozen-lockfile && pnpm --filter @workspace/vid-master... build
