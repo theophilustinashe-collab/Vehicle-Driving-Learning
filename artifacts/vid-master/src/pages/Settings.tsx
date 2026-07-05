@@ -88,6 +88,13 @@ export default function SettingsPage() {
       return;
     }
 
+    // Stabilized Options for consistent Android/Web success
+    const options = {
+      enableHighAccuracy: false, // Set to false to work without strict GPS signal
+      timeout: 10000,
+      maximumAge: 60000
+    };
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
@@ -99,16 +106,21 @@ export default function SettingsPage() {
           form.setValue("city", cityName, { shouldDirty: true });
           toast({ title: "Location Detected", description: `Updated to ${cityName}.` });
         } catch (error) {
-          toast({ title: "Detection Failed", description: "Could not identify city.", variant: "destructive" });
+          toast({ title: "Detection Failed", description: "City service unreachable. Please try again.", variant: "destructive" });
         } finally {
           setIsLocating(false);
         }
       },
       (error) => {
         setIsLocating(false);
-        toast({ title: "Access Denied", description: "Please enable location permissions in settings.", variant: "destructive" });
+        let msg = "Please enable location permissions in settings.";
+        // Error code 1 means PERMISSION_DENIED
+        if (error.code === 1) {
+          msg = "Permission denied. If you allowed it in the popup, please also check your browser/phone privacy settings.";
+        }
+        toast({ title: "Access Denied", description: msg, variant: "destructive" });
       },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      options
     );
   };
 
@@ -201,7 +213,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Ranking Card */}
-      <Card className="border-0 shadow-lg ring-1 ring-border bg-gradient-to-br from-primary to-primary/80 text-primary-foreground overflow-hidden relative">
+      <Card className="border-0 shadow-lg ring-1 ring-border bg-gradient-to-br from-primary to-primary/80 text-primary-foreground overflow-hidden relative rounded-[2rem]">
         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
           <Trophy className="w-32 h-32" />
         </div>
@@ -236,7 +248,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* Offline Downloads */}
-      <Card className="border-0 shadow-sm ring-1 ring-border bg-amber-50/50">
+      <Card className="border-0 shadow-sm ring-1 ring-border bg-amber-50/50 rounded-[2rem]">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-amber-600" />
@@ -257,7 +269,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-sm ring-1 ring-border">
+      <Card className="border-0 shadow-sm ring-1 ring-border rounded-[2rem]">
         <CardHeader>
           <CardTitle>Profile Details</CardTitle>
         </CardHeader>
@@ -305,7 +317,7 @@ export default function SettingsPage() {
                     <FormItem>
                       <FormLabel className="font-bold">Full Name</FormLabel>
                       <FormControl>
-                        <Input className="h-11" {...field} />
+                        <Input className="h-11 rounded-xl" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -331,7 +343,7 @@ export default function SettingsPage() {
                         </Button>
                       </FormLabel>
                       <FormControl>
-                        <Input className="h-11" {...field} />
+                        <Input className="h-11 rounded-xl" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -348,7 +360,7 @@ export default function SettingsPage() {
                     <FormControl>
                       <div className="relative">
                         <Phone className="absolute left-3 top-3 h-4.5 w-4.5 text-muted-foreground" />
-                        <Input className="pl-10 h-11" placeholder="+263..." {...field} />
+                        <Input className="pl-10 h-11 rounded-xl" placeholder="+263..." {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -367,7 +379,7 @@ export default function SettingsPage() {
                       <FormLabel className="font-bold">Display Language</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || "en"}>
                         <FormControl>
-                          <SelectTrigger className="h-11">
+                          <SelectTrigger className="h-11 rounded-xl">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -385,7 +397,7 @@ export default function SettingsPage() {
                   control={form.control}
                   name="soundEnabled"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-lg border p-4 bg-muted/20">
+                    <FormItem className="flex items-center justify-between rounded-xl border p-4 bg-muted/20">
                       <div className="space-y-0.5">
                         <FormLabel className="font-bold flex items-center gap-2">
                           <Volume2 className="w-4 h-4" /> Sound Effects
@@ -407,7 +419,7 @@ export default function SettingsPage() {
                       <FormLabel className="font-bold">Voice Narrator Accent</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || "en-GB"}>
                         <FormControl>
-                          <SelectTrigger className="h-11">
+                          <SelectTrigger className="h-11 rounded-xl">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -429,7 +441,7 @@ export default function SettingsPage() {
                       <FormLabel className="font-bold">Narration Speed</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || "0.9"}>
                         <FormControl>
-                          <SelectTrigger className="h-11">
+                          <SelectTrigger className="h-11 rounded-xl">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -446,7 +458,7 @@ export default function SettingsPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 font-black text-base shadow-lg shadow-primary/20"
+                className="w-full h-12 font-black text-base shadow-lg shadow-primary/20 rounded-xl"
                 disabled={updateProfile.isPending}
               >
                 {updateProfile.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Changes"}
@@ -456,7 +468,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-destructive/20 bg-destructive/5">
+      <Card className="border-destructive/20 bg-destructive/5 rounded-[2rem]">
         <CardHeader>
           <CardTitle className="text-destructive text-lg">Danger Zone</CardTitle>
           <CardDescription>Actions that cannot be undone.</CardDescription>
@@ -464,32 +476,26 @@ export default function SettingsPage() {
         <CardContent>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" className="text-destructive border-destructive/20 hover:bg-destructive/10 w-full md:w-auto font-bold">
+              <Button variant="outline" className="text-destructive border-destructive/20 hover:bg-destructive/10 w-full md:w-auto font-bold rounded-xl">
                 Delete My Progress Data
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="rounded-[2.5rem]">
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription className="space-y-2">
+                <AlertDialogTitle className="text-2xl font-black">Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-2 font-medium">
                   <p>
-                    This will permanently erase all your progress including:
+                    This will permanently erase all your progress including history, XP, levels and bookmarks.
                   </p>
-                  <ul className="list-disc pl-5 space-y-1 font-medium text-destructive/80">
-                    <li>Entire test history and results</li>
-                    <li>Earned XP and current level</li>
-                    <li>Current study streaks</li>
-                    <li>Bookmarked questions</li>
-                  </ul>
-                  <p className="font-bold">
-                    This action cannot be undone. You will start back at Level 1.
+                  <p className="font-black text-destructive">
+                    This action cannot be undone.
                   </p>
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogFooter className="gap-3">
+                <AlertDialogCancel className="rounded-xl h-12 font-bold border-2">Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl h-12 font-bold shadow-lg shadow-destructive/20"
                   onClick={() => {
                     toast({
                       title: "Progress Reset Request Sent",
