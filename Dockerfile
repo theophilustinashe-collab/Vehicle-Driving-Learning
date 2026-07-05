@@ -12,7 +12,8 @@ COPY pnpm-workspace.yaml ./
 COPY package.json ./
 COPY lib/db/package.json ./lib/db/
 COPY artifacts/api-server/package.json ./artifacts/api-server/
-COPY artifacts/api-zod/package.json ./artifacts/api-zod/
+COPY lib/api-zod/package.json ./lib/api-zod/
+COPY lib/api-spec/package.json ./lib/api-spec/
 
 # Install dependencies without frozen lockfile to allow auto-fixes on build
 RUN pnpm install
