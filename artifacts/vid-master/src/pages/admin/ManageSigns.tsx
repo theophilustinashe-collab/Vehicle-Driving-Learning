@@ -52,11 +52,11 @@ export default function ManageSigns() {
 
   const [form, setForm] = useState(initialForm);
 
-  const onCropComplete = useCallback((_croppedArea, croppedAreaPixels) => {
+  const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
-  const getCroppedImg = async (imageSrc, pixelCrop) => {
+  const getCroppedImg = async (imageSrc: string, pixelCrop: any) => {
     const image = new Image();
     image.src = imageSrc;
     await new Promise((resolve) => {

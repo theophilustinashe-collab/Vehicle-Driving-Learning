@@ -13,7 +13,8 @@ import {
   Camera,
   Eye,
   Smartphone,
-  Lightbulb
+  Lightbulb,
+  ArrowLeft
 } from "lucide-react";
 import { Link } from "wouter";
 
