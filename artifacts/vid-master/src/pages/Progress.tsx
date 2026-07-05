@@ -37,56 +37,132 @@ export default function Progress() {
   })) || [];
 
   const mockBadges = [
-    { name: "Safety First", desc: "Completed 10 timed tests", icon: ShieldCheck, earned: (stats.totalTests >= 10) },
-    { name: "Road Sign Master", desc: "100% score on Signs category", icon: Signpost, earned: (categories?.find(c => c.category === "Signs")?.accuracy === 100) },
-    { name: "Speed Demon", desc: "Completed a test in under 5 mins", icon: Zap, earned: true },
-    { name: "First 100%", desc: "Scored a perfect 25/25", icon: Trophy, earned: (stats.accuracy >= 95) },
+    {
+      name: "Safety First",
+      desc: "Complete 10 timed tests to prove your commitment to road safety.",
+      icon: ShieldCheck,
+      earned: (stats.totalTests >= 10),
+      color: "bg-blue-500",
+      progress: Math.min(100, (stats.totalTests / 10) * 100)
+    },
+    {
+      name: "Sign Master",
+      desc: "Achieve 100% accuracy in the Road Signs category.",
+      icon: Signpost,
+      earned: (categories?.find(c => c.category.toLowerCase().includes("sign"))?.accuracy === 100),
+      color: "bg-emerald-500",
+      progress: categories?.find(c => c.category.toLowerCase().includes("sign"))?.accuracy || 0
+    },
+    {
+      name: "Speed Demon",
+      desc: "Complete a full mock exam in record time (under 5 minutes).",
+      icon: Zap,
+      earned: true,
+      color: "bg-orange-500",
+      progress: 100
+    },
+    {
+      name: "First 100%",
+      desc: "Score a perfect 25/25 on any timed mock exam.",
+      icon: Trophy,
+      earned: (stats.accuracy >= 95),
+      color: "bg-yellow-500",
+      progress: stats.accuracy
+    },
+    {
+      name: "Steady Learner",
+      desc: "Maintain a 5-day study streak to build consistent habits.",
+      icon: Activity,
+      earned: (stats.streak >= 5),
+      color: "bg-purple-500",
+      progress: Math.min(100, (stats.streak / 5) * 100)
+    },
+    {
+      name: "Top Scorer",
+      desc: "Reach Level 5 by earning experience points through practice.",
+      icon: Medal,
+      earned: (stats.level >= 5),
+      color: "bg-indigo-500",
+      progress: Math.min(100, (stats.level / 5) * 100)
+    },
   ];
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-24">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-10 pb-32">
       <div className="flex items-center gap-4">
         <Link href="/dashboard">
-          <Button variant="ghost" size="icon" className="hidden lg:flex">
+          <Button variant="ghost" size="icon" className="rounded-2xl border shadow-sm h-11 w-11">
             <ArrowLeft className="w-5 h-5" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Detailed Analytics</h1>
-          <p className="text-muted-foreground mt-1">Deep dive into your performance metrics.</p>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-slate-900 uppercase">Performance Analytics</h1>
+          <p className="text-muted-foreground font-medium">Deep dive into your journey towards getting licensed.</p>
         </div>
       </div>
 
       {/* Achievement Badges */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-bold flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-secondary" />
-          Your Achievements
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between px-2">
+          <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+            <Trophy className="w-6 h-6 text-yellow-500" />
+            Your Achievements
+          </h2>
+          <Badge variant="outline" className="font-bold border-primary/20 text-primary">
+            {mockBadges.filter(b => b.earned).length} / {mockBadges.length} Unlocked
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {mockBadges.map((badge, i) => {
-            const Icon = badge.icon || Medal;
+            const Icon = badge.icon;
             return (
-              <Card key={i} className={cn(
-                "border-0 shadow-sm ring-1 ring-border relative overflow-hidden transition-all duration-300",
-                badge.earned ? "bg-gradient-to-br from-primary/5 to-primary/10 scale-100" : "opacity-40 grayscale"
-              )}>
-                <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-                  <div className={cn(
-                    "p-3 rounded-full mb-1",
-                    badge.earned ? "bg-primary/20 text-primary animate-in zoom-in-50 duration-500" : "bg-muted text-muted-foreground"
-                  )}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <h3 className="font-bold text-xs uppercase tracking-wider">{badge.name}</h3>
-                  <p className="text-[10px] text-muted-foreground leading-tight">{badge.desc}</p>
-                  {badge.earned && (
-                    <div className="absolute top-0 right-0 p-1">
-                      <Star className="w-3 h-3 text-secondary fill-secondary" />
+              <motion.div
+                key={i}
+                whileHover={{ y: -5 }}
+                className="relative"
+              >
+                <Card className={cn(
+                  "border-0 shadow-lg ring-1 ring-slate-200/60 h-full transition-all duration-500 rounded-[2rem] overflow-hidden",
+                  badge.earned ? "bg-white" : "bg-slate-50/50 opacity-60 grayscale"
+                )}>
+                  <CardContent className="p-5 flex flex-col items-center text-center gap-3 h-full">
+                    <div className={cn(
+                      "w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg relative mb-2",
+                      badge.earned ? `${badge.color} text-white` : "bg-slate-200 text-slate-400"
+                    )}>
+                      <Icon className="w-7 h-7" />
+                      {badge.earned && (
+                        <div className="absolute -top-2 -right-2 bg-yellow-400 text-white rounded-full p-1 shadow-md border-2 border-white">
+                          <Star className="w-3 h-3 fill-current" />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+
+                    <div className="space-y-1">
+                      <h3 className="font-black text-[11px] uppercase tracking-wider text-slate-900">{badge.name}</h3>
+                      <p className="text-[9px] text-slate-500 font-bold leading-tight line-clamp-2">{badge.desc}</p>
+                    </div>
+
+                    {!badge.earned && (
+                      <div className="w-full mt-auto pt-2">
+                        <div className="h-1 w-full bg-slate-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-slate-400" style={{ width: `${badge.progress}%` }} />
+                        </div>
+                        <p className="text-[8px] font-black text-slate-400 mt-1 uppercase">{Math.round(badge.progress)}% COMPLETED</p>
+                      </div>
+                    )}
+
+                    {badge.earned && (
+                      <div className="mt-auto pt-2">
+                        <div className="bg-emerald-50 text-emerald-600 text-[8px] font-black px-2 py-0.5 rounded-full uppercase border border-emerald-100">
+                          Unlocked
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
             );
           })}
         </div>
