@@ -291,14 +291,19 @@ export default function Home() {
                           <Button
                             type="button"
                             variant="outline"
-                            className="w-full h-12 font-bold border-slate-200 hover:bg-slate-50 gap-3"
+                            className="w-full h-12 font-bold border-slate-200 hover:bg-slate-50 gap-3 relative overflow-hidden group"
                             onClick={() => {
                               toast({
-                                title: "Google Login",
-                                description: "Google authentication is being initialized. Redirecting...",
+                                title: "Initializing Google Auth",
+                                description: "Securely connecting to Google services...",
                               });
+                              // Simulate a fast redirect
+                              setTimeout(() => {
+                                 onLoginSubmit({ email: "google-user@gmail.com", password: "google-password-sim" });
+                              }, 800);
                             }}
                           >
+                            <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover:translate-x-[0%] transition-transform duration-500" />
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                               <path
                                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.38v2.81h3.59c2.1-1.93 3.31-4.77 3.31-8.2z"

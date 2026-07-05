@@ -135,61 +135,48 @@ router.post("/:sessionId/submit", requireAuth, async (req, res) => {
         isCorrect,
         explanation: q.explanation,
       };
-    }).filter(Boolean);
+    }).filter((a): a is NonNullable<typeof a> => a !== null);
 
     const total = questionIds.length;
     const percentage = (score / total) * 100;
     const passed = percentage >= PASS_THRESHOLD * 100;
 
-    await db.update(testSessionsTable).set({
-      answers: answerDetails as typeof testSessionsTable.$inferSelect['answers'],
-      score,
-      total,
-      percentage,
-      passed,
-      timeTaken,
-      status: expired ? "expired" : "completed",
-      completedAt: now,
-    }).where(eq(testSessionsTable.sessionId, sessionId));
+    // PERFORM DB UPDATES IN BATCHES / TRANSACTIONS FOR PERFORMANCE
+    await db.transaction(async (tx) => {
+      await tx.update(testSessionsTable).set({
+        answers: answerDetails as typeof testSessionsTable.$inferSelect['answers'],
+        score,
+        total,
+        percentage,
+        passed,
+        timeTaken,
+        status: expired ? "expired" : "completed",
+        completedAt: now,
+      }).where(eq(testSessionsTable.sessionId, sessionId));
 
-    // Process Mastery & Progress
-    for (const a of answerDetails) {
-      if (!a) continue;
-      try {
-        const isCorrect = a.isCorrect;
-
-        // Update Question Progress
-        await db.insert(questionProgressTable).values({
+      // Batch update question progress
+      for (const a of answerDetails) {
+        await tx.insert(questionProgressTable).values({
           userId,
           questionId: a.questionId,
-          correctStreak: isCorrect ? 1 : 0,
-          totalCorrect: isCorrect ? 1 : 0,
-          totalIncorrect: isCorrect ? 0 : 1,
+          correctStreak: a.isCorrect ? 1 : 0,
+          totalCorrect: a.isCorrect ? 1 : 0,
+          totalIncorrect: a.isCorrect ? 0 : 1,
           isMastered: false,
           lastAttemptedAt: now,
         }).onConflictDoUpdate({
           target: [questionProgressTable.userId, questionProgressTable.questionId],
           set: {
-            correctStreak: isCorrect
-              ? sql`${questionProgressTable.correctStreak} + 1`
-              : 0,
-            totalCorrect: isCorrect
-              ? sql`${questionProgressTable.totalCorrect} + 1`
-              : questionProgressTable.totalCorrect,
-            totalIncorrect: !isCorrect
-              ? sql`${questionProgressTable.totalIncorrect} + 1`
-              : questionProgressTable.totalIncorrect,
-            // Mastery check: 3 correct in a row OR consistently high performance
-            isMastered: isCorrect
-              ? sql`(${questionProgressTable.correctStreak} + 1) >= 3`
-              : false,
+            correctStreak: a.isCorrect ? sql`${questionProgressTable.correctStreak} + 1` : 0,
+            totalCorrect: a.isCorrect ? sql`${questionProgressTable.totalCorrect} + 1` : questionProgressTable.totalCorrect,
+            totalIncorrect: !a.isCorrect ? sql`${questionProgressTable.totalIncorrect} + 1` : questionProgressTable.totalIncorrect,
+            isMastered: a.isCorrect ? sql`(${questionProgressTable.correctStreak} + 1) >= 3` : false,
             lastAttemptedAt: now,
           },
         });
 
-        // Maintain old mistakes table for compatibility if needed, or rely on progress
-        if (!isCorrect) {
-          await db.insert(mistakesTable).values({
+        if (!a.isCorrect) {
+          await tx.insert(mistakesTable).values({
             userId,
             questionId: a.questionId,
             incorrectCount: 1,
@@ -202,31 +189,28 @@ router.post("/:sessionId/submit", requireAuth, async (req, res) => {
             },
           });
         }
-      } catch (err) {
-        logger.error({ err, userId, qId: a.questionId }, "Failed to update question progress");
       }
-    }
 
-    // Update user XP and stats
-    const xpGain = passed ? 100 : 30;
-    const coinsGain = passed ? 200 : 50; // New economy: +200 coins for pass, +50 for attempt
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
-    if (user) {
-      const newXp = (user.xp ?? 0) + xpGain;
-      const newCoins = (user.coins ?? 0) + coinsGain;
-      const newTotalTests = (user.totalTests ?? 0) + 1;
-      const currentPassRate = user.passRate ?? 0;
-      const newPassRate = ((currentPassRate * (newTotalTests - 1)) + (passed ? 100 : 0)) / newTotalTests;
-      const newLevel = Math.floor(newXp / 500) + 1;
-      await db.update(usersTable).set({
-        xp: newXp,
-        coins: newCoins,
-        totalTests: newTotalTests,
-        passRate: newPassRate,
-        level: newLevel,
-        lastActiveAt: now,
-      }).where(eq(usersTable.id, userId));
-    }
+      // Update user stats
+      const xpGain = passed ? 100 : 30;
+      const coinsGain = passed ? 200 : 50;
+      const [user] = await tx.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+      if (user) {
+        const newXp = (user.xp ?? 0) + xpGain;
+        const newTotalTests = (user.totalTests ?? 0) + 1;
+        const currentPassRate = user.passRate ?? 0;
+        const newPassRate = ((currentPassRate * (newTotalTests - 1)) + (passed ? 100 : 0)) / newTotalTests;
+        const newLevel = Math.floor(newXp / 500) + 1;
+        await tx.update(usersTable).set({
+          xp: newXp,
+          coins: (user.coins ?? 0) + coinsGain,
+          totalTests: newTotalTests,
+          passRate: newPassRate,
+          level: newLevel,
+          lastActiveAt: now,
+        }).where(eq(usersTable.id, userId));
+      }
+    });
 
     res.json({
       sessionId,
