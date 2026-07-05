@@ -6,6 +6,8 @@ import { Target, Activity, CheckSquare, Layers, ArrowLeft, Trophy, Medal, Star, 
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 export default function Progress() {
   const { data: stats, isLoading: statsLoading } = useGetUserStats();
@@ -23,7 +25,17 @@ export default function Progress() {
     );
   }
 
-  if (!stats) return null;
+  if (!stats) {
+    return (
+      <div className="p-8 text-center py-20">
+        <h2 className="text-xl font-bold">No data available</h2>
+        <p className="text-muted-foreground mt-2">Start taking tests to see your progress!</p>
+        <Link href="/test">
+           <Button className="mt-4">Take a Test</Button>
+        </Link>
+      </div>
+    );
+  }
 
   const activityData = stats.weeklyActivity?.map((val, idx) => ({
     day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][idx],
