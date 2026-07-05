@@ -191,3 +191,21 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-muted-foreground/40;
 }
+
+/* Car Indicator Blinking Animation */
+@keyframes car-indicator {
+  0%, 49% {
+    @apply bg-transparent border-slate-200 text-slate-700;
+  }
+  50%, 100% {
+    background-color: #f59e0b; /* Amber 500 */
+    border-color: #d97706; /* Amber 600 */
+    color: white;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+  }
+}
+
+.animate-car-indicator {
+  animation: car-indicator 0.8s step-end infinite;
+}
+

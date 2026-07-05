@@ -169,9 +169,9 @@ export default function ExamGuidePage() {
             <ChevronRight className="w-5 h-5" />
           </Button>
         </Link>
-        <Link href="/signs">
-           <Button variant="outline" size="lg" className="h-16 px-10 rounded-2xl font-black text-lg border-2 w-full sm:w-auto">
-             Review Road Signs
+        <Link href="/dashboard">
+           <Button variant="outline" size="lg" className="h-16 px-10 rounded-2xl font-black text-lg border-2 w-full sm:w-auto animate-car-indicator">
+             <ArrowLeft className="w-5 h-5 mr-2" /> Return to Dashboard
            </Button>
         </Link>
       </div>

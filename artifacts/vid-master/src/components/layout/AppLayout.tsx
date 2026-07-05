@@ -305,10 +305,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="-ml-1 h-10 w-10 rounded-2xl hover:bg-slate-100 border border-slate-200 shadow-sm active:scale-95 transition-all"
+                className="-ml-1 h-10 w-10 rounded-2xl border border-slate-200 shadow-sm active:scale-95 transition-all animate-car-indicator"
                 onClick={() => window.history.back()}
               >
-                <ArrowLeft className="h-5 w-5 text-slate-700" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
             )}
             <div className={cn(

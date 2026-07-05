@@ -103,7 +103,7 @@ export default function Progress() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-10 pb-32">
       <div className="flex items-center gap-4">
         <Link href="/dashboard">
-          <Button variant="ghost" size="icon" className="rounded-2xl border shadow-sm h-11 w-11">
+          <Button variant="ghost" size="icon" className="rounded-2xl border shadow-sm h-11 w-11 animate-car-indicator">
             <ArrowLeft className="w-5 h-5" />
           </Button>
         </Link>

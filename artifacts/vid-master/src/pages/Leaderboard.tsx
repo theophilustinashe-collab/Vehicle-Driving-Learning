@@ -22,7 +22,7 @@ export default function Leaderboard() {
         
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-4">
           <Link href="/dashboard">
-            <Button variant="ghost" size="icon" className="hidden lg:flex text-primary-foreground hover:bg-primary-foreground/10">
+            <Button variant="ghost" size="icon" className="hidden lg:flex text-primary-foreground hover:bg-primary-foreground/10 border border-white/20 animate-car-indicator">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>

@@ -57,7 +57,7 @@ export default function GaragePage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-4">
           <Link href="/dashboard">
-            <Button variant="ghost" size="icon" className="rounded-2xl border shadow-sm">
+            <Button variant="ghost" size="icon" className="rounded-2xl border shadow-sm animate-car-indicator">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>

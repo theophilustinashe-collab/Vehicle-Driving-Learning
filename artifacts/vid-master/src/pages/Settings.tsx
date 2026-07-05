@@ -152,9 +152,16 @@ export default function SettingsPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-8 pb-24">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">Account Settings</h1>
-        <p className="text-muted-foreground">Manage your profile and track your competitive standing.</p>
+      <div className="flex items-center gap-4">
+        <Link href="/dashboard">
+          <Button variant="ghost" size="icon" className="rounded-2xl border shadow-sm h-11 w-11 animate-car-indicator">
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
+          </Button>
+        </Link>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-bold tracking-tight text-primary leading-none">Account Settings</h1>
+          <p className="text-muted-foreground text-sm">Manage your profile and track your standing.</p>
+        </div>
       </div>
 
       {/* Ranking Card */}
