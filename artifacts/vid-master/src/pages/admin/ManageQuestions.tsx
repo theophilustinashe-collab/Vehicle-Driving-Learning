@@ -203,7 +203,10 @@ export default function ManageQuestions() {
           <p className="text-lg font-medium text-muted-foreground mt-2">Managing {questions?.length || 0} active curriculum items.</p>
         </div>
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-4 bg-amber-500/5 p-4 rounded-3xl border border-amber-500/10">
+          <div
+            className="flex items-center gap-4 bg-amber-500/5 p-4 rounded-3xl border border-amber-500/10 cursor-pointer hover:bg-amber-500/10 transition-colors"
+            onClick={() => setActiveTab("missing_images")}
+          >
             <div className="text-right">
               <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Action Required</p>
               <p className="text-2xl font-black text-slate-900">{questions?.filter(q => !q.imageUrl && (q.category?.toLowerCase() || "").includes('sign'))?.length || 0}</p>
