@@ -13,7 +13,7 @@ const isLocal = !window.location.hostname ||
                 /^(\d{1,3}\.){3}\d{1,3}$/.test(window.location.hostname);
 
 // The URL of your Render backend
-const renderUrl = 'https://vid-dohn.onrender.com';
+const renderUrl = 'https://vehicle-driving-learning.onrender.com';
 
 let apiUrl = (import.meta.env.VITE_API_URL as string);
 

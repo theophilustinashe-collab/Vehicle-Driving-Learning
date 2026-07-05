@@ -29,7 +29,7 @@ function AppContent() {
 
   // Fallback IP for development
   const hardcodedIp = '192.168.1.63';
-  const renderUrl = 'https://vid-master-web.onrender.com';
+  const renderUrl = 'https://vehicle-driving-learning.onrender.com';
 
   // Detect server URL
   const expoIp = Constants.expoConfig?.hostUri?.split(':')[0] ||
