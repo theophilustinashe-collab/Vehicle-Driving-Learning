@@ -12,7 +12,8 @@ import {
   CreditCard,
   Camera,
   Eye,
-  Smartphone
+  Smartphone,
+  Lightbulb
 } from "lucide-react";
 import { Link } from "wouter";
 
