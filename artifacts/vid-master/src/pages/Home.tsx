@@ -58,16 +58,40 @@ export default function Home() {
       {
         onSuccess: (res) => {
           localStorage.setItem("vid_token", res.token);
-          // Fast UI transition
           toast({ title: "Authorized", description: "Taking you to your dashboard..." });
           setTimeout(() => {
             window.location.href = "/dashboard";
           }, 300);
         },
-        onError: (err) => {
+        onError: (err: any) => {
+          // If it's a simulated google login and it fails, try to register it once
+          if (data.email === "google-user@gmail.com") {
+            register.mutate({
+              data: {
+                name: "Google Learner",
+                email: data.email,
+                password: data.password,
+                city: "Harare"
+              }
+            }, {
+              onSuccess: (res) => {
+                localStorage.setItem("vid_token", res.token);
+                window.location.href = "/dashboard";
+              },
+              onError: () => {
+                toast({
+                  title: "Access Denied",
+                  description: "Login failed. Please check your network or try registering manually.",
+                  variant: "destructive",
+                });
+              }
+            });
+            return;
+          }
+
           toast({
             title: "Access Denied",
-            description: err.message || "Please check your network connection.",
+            description: err.message || "Invalid credentials. If you don't have an account, please Register first.",
             variant: "destructive",
           });
         },

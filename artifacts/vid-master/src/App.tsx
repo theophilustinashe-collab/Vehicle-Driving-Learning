@@ -14,40 +14,51 @@ const isLocal = !window.location.hostname ||
 
 const renderUrl = 'https://vehicle-driving-learning-api.onrender.com';
 const localPort = '8080';
+const hardcodedIp = '192.168.1.63'; // Your PC's LAN IP
 
 let apiUrl = (import.meta.env.VITE_API_URL as string);
 
 if (!apiUrl) {
   if (isLocal) {
-    // Determine the best local IP to use
     const host = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ? 'localhost'
       : window.location.hostname;
 
     apiUrl = `http://${host}:${localPort}`;
 
-    // Check if we are in a production build but running locally
-    // If so, and the local backend isn't responding, we might want to fallback to Render
-    // But for now, let's stick to the detected IP.
+    // If we are likely on a phone but can't see the PC, try the hardcoded IP
+    if (host === 'localhost' && window.navigator.userAgent.includes('Mobile')) {
+      apiUrl = `http://${hardcodedIp}:${localPort}`;
+    }
   } else {
     apiUrl = renderUrl;
   }
 }
 
-// Ensure no trailing slash
 apiUrl = apiUrl.replace(/\/$/, "");
 
 // [Production Web Service Migration - 2026-07-05]
-console.log(`[VID Master] API URL set to: ${apiUrl}`);
+console.log(`[VID Master] Initial API URL: ${apiUrl}`);
 (window as any).apiUrl = apiUrl;
 setBaseUrl(apiUrl);
 
-// Global Auto-Ping for "Failed to Fetch" debugging
+// Global Auto-Fallback for "Failed to Fetch"
 if (typeof window !== 'undefined') {
   fetch(`${apiUrl}/api/healthz`).catch(() => {
-    console.warn(`[VID Master] API at ${apiUrl} is unreachable. Falling back to Render...`);
-    // If local fails, switch to render globally
-    if (apiUrl !== renderUrl) {
+    console.warn(`[VID Master] API at ${apiUrl} unreachable. Checking fallbacks...`);
+
+    const fallbackLocal = `http://${hardcodedIp}:${localPort}`;
+    if (apiUrl !== fallbackLocal) {
+      fetch(`${fallbackLocal}/api/healthz`).then(() => {
+        apiUrl = fallbackLocal;
+        (window as any).apiUrl = apiUrl;
+        setBaseUrl(apiUrl);
+      }).catch(() => {
+        apiUrl = renderUrl;
+        (window as any).apiUrl = apiUrl;
+        setBaseUrl(apiUrl);
+      });
+    } else {
       apiUrl = renderUrl;
       (window as any).apiUrl = apiUrl;
       setBaseUrl(apiUrl);
