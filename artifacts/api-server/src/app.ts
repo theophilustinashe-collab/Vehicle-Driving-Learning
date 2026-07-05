@@ -65,7 +65,8 @@ app.use((req, res, next) => {
     userRequests.count++;
     if (userRequests.count > maxRequests) {
       logger.warn({ ip }, "Rate limit exceeded");
-      return res.status(429).json({ error: "Too many requests. Please try again later." });
+      res.status(429).json({ error: "Too many requests. Please try again later." });
+      return;
     }
   }
   next();
