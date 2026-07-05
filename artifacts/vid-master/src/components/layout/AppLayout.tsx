@@ -33,6 +33,7 @@ import { syncOfflineData, getLastSyncDate } from "@/lib/offline";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Production-ready application layout
 import logo from "../../assets/logo.png";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {

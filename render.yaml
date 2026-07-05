@@ -19,7 +19,7 @@ services:
   # Frontend Web App (Static Site)
   - type: static
     name: vid-master-web
-    buildCommand: pnpm install --no-frozen-lockfile && pnpm --filter @workspace/vid-master build
+    buildCommand: pnpm install --no-frozen-lockfile && pnpm --filter @workspace/vid-master build --prod
     publishDir: ./artifacts/vid-master/dist/public
     envVars:
       - key: VITE_API_URL
