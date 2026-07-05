@@ -6,13 +6,21 @@ RUN corepack enable
 
 WORKDIR /app
 
-# Copy the entire workspace
+# Copy necessary files for dependency installation
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY lib/db/package.json ./lib/db/
+COPY artifacts/api-server/package.json ./artifacts/api-server/
+COPY artifacts/api-zod/package.json ./artifacts/api-zod/
+
+# Install dependencies without frozen lockfile to allow auto-fixes on build
+RUN pnpm install
+
+# Now copy the rest of the source code
 COPY . .
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
-# Build the API server and its dependencies
+# Build the API server
 RUN pnpm --filter @workspace/api-server build
 
 # Set production environment variables
