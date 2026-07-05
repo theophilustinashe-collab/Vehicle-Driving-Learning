@@ -2,17 +2,24 @@
 FROM node:20-slim
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+
+# Install system dependencies that might be needed for native builds
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN corepack enable
 
 WORKDIR /app
 
 # Copy the entire workspace (filtered by .dockerignore)
-# This includes all package.json files and the lockfile
 COPY . .
 
-# Install dependencies
-# We use --no-frozen-lockfile because the lockfile might have been generated on a different platform (Windows)
-RUN pnpm install --no-frozen-lockfile
+# Install dependencies with verbose logging to catch the exact error
+# --no-frozen-lockfile is used because the lockfile was generated on Windows
+RUN pnpm install --no-frozen-lockfile --reporter=silent || pnpm install --no-frozen-lockfile
 
 # Build the API server and its local dependencies
 RUN pnpm --filter @workspace/api-server... build
