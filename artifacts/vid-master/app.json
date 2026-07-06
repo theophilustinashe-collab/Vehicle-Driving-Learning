@@ -22,9 +22,20 @@
       },
       "package": "com.vidmaster.zim",
       "permissions": [
-        "INTERNET"
+        "INTERNET",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
       ]
     },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysPermission": "Allow VID Master to use your location."
+        }
+      ],
+      "expo-dev-client"
+    ],
     "web": {
       "bundler": "metro"
     },

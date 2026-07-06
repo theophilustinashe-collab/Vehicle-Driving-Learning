@@ -5,35 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a24fbbf3-9b96-441e-8e83-dceba08f5ebd" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../../api-server/src/routes/garage.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../src/pages/Garage.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/archives.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/questionProgress.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/add_daily_column.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/fix_db.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../../scripts/update_schema_v2.mjs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../api-server/src/app.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/app.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/progress.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/progress.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/tests.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/tests.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/components/layout/AppLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/layout/AppLayout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/lib/voice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/lib/voice.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Dashboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/Home.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Home.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/Leaderboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Leaderboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/Progress.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Progress.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/Questions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Questions.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/Settings.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Settings.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/Test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/TestResults.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/TestResults.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/admin/ManageQuestions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/admin/ManageQuestions.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/admin/ManageSigns.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/admin/ManageSigns.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/pages/admin/ManageUsers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/admin/ManageUsers.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../lib/db/src/schema/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../lib/db/src/schema/users.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/users.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
