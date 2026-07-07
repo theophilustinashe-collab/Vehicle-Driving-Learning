@@ -12,7 +12,7 @@ const isLocal = !window.location.hostname ||
                 window.location.hostname === '127.0.0.1' ||
                 /^(\d{1,3}\.){3}\d{1,3}$/.test(window.location.hostname);
 
-const renderUrl = 'https://vehicle-driving-learning-3.onrender.com';
+const renderUrl = 'https://vehicle-driving-learning-api-3.onrender.com';
 const localPort = '8080';
 const hardcodedIp = '192.168.1.63'; // Your PC's LAN IP
 

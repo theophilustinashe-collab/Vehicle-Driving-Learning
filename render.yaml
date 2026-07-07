@@ -1,7 +1,7 @@
 services:
   # Backend API Server
   - type: web
-    name: vehicle-driving-learning-3
+    name: vehicle-driving-learning-api-3
     runtime: docker
     dockerFilePath: ./Dockerfile
     plan: free
@@ -16,14 +16,14 @@ services:
 
   # Frontend Web App
   - type: web
-    name: vehicle-driving-learning
+    name: vehicle-driving-learning-3
     runtime: node
     plan: free
     buildCommand: pnpm install --no-frozen-lockfile && pnpm --filter @workspace/vid-master... build
     startCommand: pnpm --filter @workspace/vid-master run serve
     envVars:
       - key: VITE_API_URL
-        value: https://vehicle-driving-learning-3.onrender.com
+        value: https://vehicle-driving-learning-api-3.onrender.com
       - key: NODE_VERSION
         value: 20.x
       - key: PORT
