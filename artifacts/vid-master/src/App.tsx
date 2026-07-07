@@ -12,14 +12,22 @@ const isLocal = !window.location.hostname ||
                 window.location.hostname === '127.0.0.1' ||
                 /^(\d{1,3}\.){3}\d{1,3}$/.test(window.location.hostname);
 
-const renderUrl = 'https://vehicle-driving-learning-api.onrender.com';
+const renderUrl = 'https://vehicle-driving-learning-3.onrender.com';
 const localPort = '8080';
 const hardcodedIp = '192.168.1.63'; // Your PC's LAN IP
 
 let apiUrl = (import.meta.env.VITE_API_URL as string);
 
 if (!apiUrl) {
-  if (isLocal) {
+  // Check if we are in a native app context (Android/iOS)
+  const isNative = typeof window !== 'undefined' &&
+                   (window.navigator.userAgent.includes('Android') ||
+                    window.navigator.userAgent.includes('iPhone'));
+
+  if (isNative) {
+    // For native apps, always try the online production URL first
+    apiUrl = renderUrl;
+  } else if (isLocal) {
     const host = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ? 'localhost'
       : window.location.hostname;
@@ -38,14 +46,14 @@ if (!apiUrl) {
 apiUrl = apiUrl.replace(/\/$/, "");
 
 // [Production Web Service Migration - 2026-07-05]
-console.log(`[VID Master] Initial API URL: ${apiUrl}`);
+console.log(`[Roadify] Initial API URL: ${apiUrl}`);
 (window as any).apiUrl = apiUrl;
 setBaseUrl(apiUrl);
 
 // Global Auto-Fallback for "Failed to Fetch"
 if (typeof window !== 'undefined') {
   fetch(`${apiUrl}/api/healthz`).catch(() => {
-    console.warn(`[VID Master] API at ${apiUrl} unreachable. Checking fallbacks...`);
+    console.warn(`[Roadify] API at ${apiUrl} unreachable. Checking fallbacks...`);
 
     const fallbackLocal = `http://${hardcodedIp}:${localPort}`;
     if (apiUrl !== fallbackLocal) {

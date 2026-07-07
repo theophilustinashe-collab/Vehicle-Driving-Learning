@@ -7,7 +7,7 @@ node_modules
 artifacts/api-server
 artifacts/mockup-sandbox
 scripts
- attached_assets
+attached_assets
 .github
 android
 ios
@@ -17,9 +17,12 @@ out-tsc
 *.tsbuildinfo
 .expo
 .expo-shared
+.cxx
+**/.build
+**/.cxx
+**/.idea
+**/.vscode
 !artifacts/vid-master
-!artifacts/vid-master/app.json
-!artifacts/vid-master/package.json
 !lib/db
 !lib/api-zod
 !lib/api-spec
@@ -28,4 +31,3 @@ out-tsc
 !pnpm-workspace.yaml
 !package.json
 !eas.json
-

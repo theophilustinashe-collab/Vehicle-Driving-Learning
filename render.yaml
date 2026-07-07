@@ -25,7 +25,7 @@ services:
     startCommand: pnpm --filter @workspace/vid-master run serve
     envVars:
       - key: VITE_API_URL
-        value: https://vehicle-driving-learning-api.onrender.com
+        value: https://vehicle-driving-learning-3.onrender.com
       - key: NODE_VERSION
         value: 20.x
       - key: PORT
