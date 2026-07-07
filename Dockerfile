@@ -1,4 +1,4 @@
-# Use a multi-stage build to keep the final image small
+# Use Node 20
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -8,7 +8,8 @@ RUN corepack enable
 FROM base AS build
 WORKDIR /app
 COPY . .
-# Only install what's needed for the workspace and the api-server
+# Use pnpm 9.15.0 to match your local environment
+RUN corepack prepare pnpm@9.15.0 --activate
 RUN pnpm install --no-frozen-lockfile
 RUN pnpm --filter @workspace/api-server... build
 
@@ -16,21 +17,23 @@ RUN pnpm --filter @workspace/api-server... build
 FROM base AS runner
 WORKDIR /app
 
-# Copy only the necessary files from the build stage
-# We need the workspace package.json and the built api-server
+# Copy built artifacts and necessary workspace files
 COPY --from=build /app/package.json .
 COPY --from=build /app/pnpm-workspace.yaml .
 COPY --from=build /app/pnpm-lock.yaml .
 COPY --from=build /app/artifacts/api-server/package.json ./artifacts/api-server/
 COPY --from=build /app/artifacts/api-server/dist ./artifacts/api-server/dist
+# Copy libs (sources are needed because they are linked)
 COPY --from=build /app/lib ./lib
 
 # Install only production dependencies
-# This is much faster and uses less memory
+RUN corepack prepare pnpm@9.15.0 --activate
 RUN pnpm install --prod --no-frozen-lockfile
 
+# Render provides the PORT env var, we default to 8080 but will use what they give us
 ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080
 
+# Run the server
 CMD ["node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs"]
