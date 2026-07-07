@@ -1,4 +1,4 @@
-package com.vidmaster.zim
+package com.roadify.app
 
 import android.app.Application
 import android.content.res.Configuration
