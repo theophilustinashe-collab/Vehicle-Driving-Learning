@@ -40,7 +40,7 @@ rootProject.name = 'Roadify'
 dependencyResolutionManagement {
   versionCatalogs {
     reactNative {
-      from(new File(
+      from(files(new File(
         providers.exec {
           workingDir(new File(rootDir, ".."))
           def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
@@ -48,7 +48,7 @@ dependencyResolutionManagement {
           commandLine(nodeExecutable, "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
         }.standardOutput.asText.get().trim(),
         "../gradle/libs.versions.toml"
-      ))
+      )))
     }
   }
 }
