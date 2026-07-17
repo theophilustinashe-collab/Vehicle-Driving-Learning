@@ -11,9 +11,10 @@ export const CONFIG = {
   API_PORT: '8080',
   WEB_PORT: '3001',
 
-  // 3. Production URLs
-  PROD_API_URL: 'https://vehicle-driving-learning-api-3.onrender.com',
-  PROD_WEB_URL: 'https://vehicle-driving-learning-3.onrender.com',
+  // 3. Cloud Production URLs (REPLACE THESE after deploying)
+  // Example: https://vid-master-api.onrender.com
+  PROD_API_URL: 'https://your-api-service.onrender.com',
+  PROD_WEB_URL: 'https://roadify-app.vercel.app',
 
   // 4. Feature Flags
   OFFLINE_SYNC_ENABLED: true,
@@ -21,10 +22,6 @@ export const CONFIG = {
 };
 
 export const getApiUrl = (isNative: boolean = false) => {
-  if (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')) {
-    return CONFIG.PROD_API_URL;
-  }
-
   if (isNative) {
     return `http://${CONFIG.DEV_PC_IP}:${CONFIG.API_PORT}`;
   }
@@ -33,8 +30,5 @@ export const getApiUrl = (isNative: boolean = false) => {
 };
 
 export const getWebUrl = () => {
-  if (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')) {
-    return CONFIG.PROD_WEB_URL;
-  }
   return `http://localhost:${CONFIG.WEB_PORT}`;
 };

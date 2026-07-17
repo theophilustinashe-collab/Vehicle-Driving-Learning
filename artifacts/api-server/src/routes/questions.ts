@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, questionsTable } from "@workspace/db";
+import { db, questionsTable } from "@roadify/db";
 import { eq, and, ilike, SQL } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { logger } from "../lib/logger";
@@ -11,7 +11,11 @@ router.get("/", requireAuth, async (req, res) => {
     const { category, difficulty, limit = "50", offset = "0" } = req.query as Record<string, string>;
     const conditions: SQL[] = [eq(questionsTable.status, "published")];
     if (category) conditions.push(ilike(questionsTable.category, category));
-    if (difficulty) conditions.push(eq(questionsTable.difficulty, difficulty as "easy" | "medium" | "hard"));
+
+    const validDifficulties = ["easy", "medium", "hard"];
+    if (difficulty && validDifficulties.includes(difficulty)) {
+      conditions.push(eq(questionsTable.difficulty, difficulty as "easy" | "medium" | "hard"));
+    }
 
     let questions = [];
     try {

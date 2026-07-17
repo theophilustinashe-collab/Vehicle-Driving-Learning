@@ -5,6 +5,12 @@ import { StyleSheet, StatusBar, View, Text, Button, Platform, BackHandler, Activ
 import { WebView } from 'react-native-webview';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
+import * as SecureStore from 'expo-secure-store';
+
+// Shared Config Integration
+const DEV_PC_IP = '192.168.1.63';
+const WEB_PORT = 3001;
+const PROD_WEB_URL = 'https://roadify-app.vercel.app'; // Replace with your deployed Web URL
 
 function AppContent() {
   const [error, setError] = useState(null);
@@ -13,18 +19,15 @@ function AppContent() {
   const webViewRef = useRef(null);
   const [canGoBack, setCanGoBack] = useState(false);
 
-  // Fallback IP for development
-  const hardcodedIp = '192.168.1.63';
-  const renderUrl = 'https://vehicle-driving-learning-3.onrender.com';
-
   // Detect server URL
   const expoIp = Constants.expoConfig?.hostUri?.split(':')[0] ||
                  Constants.manifest2?.extra?.expoGo?.debuggerHost?.split(':')[0] ||
                  Constants.manifest?.debuggerHost?.split(':')[0];
 
-  const ipToUse = (expoIp && expoIp !== 'localhost' && expoIp !== '127.0.0.1') ? expoIp : hardcodedIp;
-  const devPort = 3001;
-  const serverUrl = __DEV__ ? `http://${ipToUse}:${devPort}` : renderUrl;
+  const ipToUse = (expoIp && expoIp !== 'localhost' && expoIp !== '127.0.0.1') ? expoIp : DEV_PC_IP;
+
+  // Use production URL if dev server is unreachable or if not in dev mode
+  const serverUrl = __DEV__ ? `http://${ipToUse}:${WEB_PORT}` : PROD_WEB_URL;
 
   // Handle hardware back button on Android
   useEffect(() => {
@@ -77,6 +80,22 @@ function AppContent() {
             latitude: location.coords.latitude,
             longitude: location.coords.longitude
           }
+        }));
+      }
+
+      if (data.type === 'SET_AUTH_TOKEN') {
+        if (data.token) {
+          await SecureStore.setItemAsync('vid_token', data.token);
+        } else {
+          await SecureStore.deleteItemAsync('vid_token');
+        }
+      }
+
+      if (data.type === 'GET_AUTH_TOKEN') {
+        const token = await SecureStore.getItemAsync('vid_token');
+        webViewRef.current?.postMessage(JSON.stringify({
+          type: 'AUTH_TOKEN_RESPONSE',
+          token: token
         }));
       }
     } catch (e) {

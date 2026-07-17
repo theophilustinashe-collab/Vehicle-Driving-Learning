@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, roadSignsTable } from "@workspace/db";
+import { db, roadSignsTable } from "@roadify/db";
 import { eq, ilike, and, SQL } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { logger } from "../lib/logger";
@@ -82,14 +82,15 @@ router.patch("/:id", requireAuth, requireAdmin, async (req, res) => {
 
     logger.info({ id, hasImage: !!imageUrl }, "Updating sign");
 
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (category !== undefined) updateData.category = category;
+    if (meaning !== undefined) updateData.meaning = meaning;
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+    if (usage !== undefined) updateData.usage = usage;
+
     const [updated] = await db.update(roadSignsTable)
-      .set({
-        name,
-        category,
-        meaning,
-        imageUrl,
-        usage
-      })
+      .set(updateData)
       .where(eq(roadSignsTable.id, id))
       .returning();
 

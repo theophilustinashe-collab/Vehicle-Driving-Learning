@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, questionsTable, testSessionsTable, usersTable, mistakesTable, questionProgressTable } from "@workspace/db";
+import { db, questionsTable, testSessionsTable, usersTable, mistakesTable, questionProgressTable } from "@roadify/db";
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import { requireAuth } from "../middlewares/auth";
@@ -130,6 +130,7 @@ router.post("/:sessionId/submit", requireAuth, async (req, res) => {
       if (isCorrect) score++;
       return {
         questionId: qId,
+        text: q.text,
         selectedAnswer: selected,
         correctAnswer: q.correctAnswer,
         isCorrect,

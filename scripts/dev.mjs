@@ -1,23 +1,33 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 
-const env = {
-  ...process.env,
-  PORT: '8080',
-  SESSION_SECRET: 'supersecret',
-  NODE_ENV: 'development',
-  DATABASE_URL: 'postgresql://neondb_owner:npg_V9WkaUpbT7Gq@ep-icy-hat-adekz7qm.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require'
-};
+// Load .env
+const env = { ...process.env };
+const envPath = path.resolve(rootDir, '.env');
+if (fs.existsSync(envPath)) {
+  const content = fs.readFileSync(envPath, 'utf8');
+  content.split('\n').forEach(line => {
+    const [key, value] = line.split('=');
+    if (key && value) {
+      env[key.trim()] = value.trim();
+    }
+  });
+}
 
-console.log("🚀 [System] Initializing VID Master Full-Stack...");
+// Fallback defaults
+env.PORT = env.PORT || '8080';
+env.NODE_ENV = env.NODE_ENV || 'development';
+
+console.log("🚀 [System] Initializing Roadify Full-Stack...");
 
 // Build API Server first to ensure dist/index.mjs exists
 console.log("🚀 [System] Building API Server...");
-spawn('pnpm', ['--filter', '@workspace/api-server', 'run', 'build'], {
+spawn('pnpm', ['--filter', '@roadify/api-server', 'run', 'build'], {
   stdio: 'inherit',
   shell: true,
   cwd: rootDir
@@ -40,7 +50,7 @@ spawn('pnpm', ['--filter', '@workspace/api-server', 'run', 'build'], {
   // Wait for backend to initialize
   setTimeout(() => {
     console.log("🚀 [System] Starting Vite Frontend on port 3000...");
-    const frontend = spawn('pnpm', ['--filter', '@workspace/vid-master', 'run', 'dev'], {
+    const frontend = spawn('pnpm', ['--filter', '@roadify/vid-master', 'run', 'dev'], {
       stdio: 'inherit',
       shell: true,
       cwd: rootDir,

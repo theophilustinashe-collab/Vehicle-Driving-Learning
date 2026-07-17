@@ -11,7 +11,7 @@ COPY . .
 # Use pnpm 9.15.0 to match your local environment
 RUN corepack prepare pnpm@9.15.0 --activate
 RUN pnpm install --no-frozen-lockfile
-RUN pnpm --filter @workspace/api-server... build
+RUN pnpm --filter @roadify/api-server... build
 
 # --- Production Stage ---
 FROM base AS runner
@@ -30,7 +30,7 @@ COPY --from=build /app/lib ./lib
 RUN corepack prepare pnpm@9.15.0 --activate
 RUN pnpm install --prod --no-frozen-lockfile
 
-# Render provides the PORT env var, we default to 8080 but will use what they give us
+# Default production port
 ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080

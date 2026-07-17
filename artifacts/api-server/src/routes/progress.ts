@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, testSessionsTable, usersTable, questionsTable, bookmarksTable, mistakesTable, badgesTable, userBadgesTable, questionProgressTable } from "@workspace/db";
+import { db, testSessionsTable, usersTable, questionsTable, bookmarksTable, mistakesTable, badgesTable, userBadgesTable, questionProgressTable } from "@roadify/db";
 import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { logger } from "../lib/logger";

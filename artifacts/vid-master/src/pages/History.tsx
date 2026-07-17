@@ -10,10 +10,29 @@ export default function History() {
 
   if (isLoading) {
     return (
-      <div className="p-8 max-w-5xl mx-auto space-y-6">
-        <Skeleton className="h-10 w-48" />
+      <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-48 rounded-xl" />
+          <Skeleton className="h-4 w-96 rounded-md" />
+        </div>
         <div className="space-y-4">
-          {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl" />)}
+          {[...Array(5)].map((_, i) => (
+            <Card key={i} className="shadow-sm">
+              <CardContent className="p-6 flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                  <Skeleton className="w-16 h-16 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-32" />
+                    <Skeleton className="h-4 w-64" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-24" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );

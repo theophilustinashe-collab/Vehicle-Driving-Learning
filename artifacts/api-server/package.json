@@ -1,6 +1,6 @@
 {
-  "name": "@workspace/api-server",
-  "version": "0.0.0",
+  "name": "@roadify/api-server",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,8 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@workspace/api-zod": "workspace:*",
-    "@workspace/db": "workspace:*",
+    "@roadify/api-zod": "workspace:*",
+    "@roadify/db": "workspace:*",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",

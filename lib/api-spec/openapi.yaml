@@ -600,7 +600,7 @@ components:
     # Auth
     RegisterInput:
       type: object
-      required: [email, password, name]
+      required: [email, password, name, city]
       properties:
         email:
           type: string
@@ -608,6 +608,8 @@ components:
           type: string
           minLength: 6
         name:
+          type: string
+        city:
           type: string
 
     LoginInput:
@@ -644,8 +646,12 @@ components:
           enum: [learner, admin]
         xp:
           type: integer
+        coins:
+          type: integer
         level:
           type: integer
+        unlockedItems:
+          type: string
         streak:
           type: integer
         totalTests:
@@ -793,6 +799,8 @@ components:
       properties:
         questionId:
           type: integer
+        text:
+          type: string
         selectedAnswer:
           type: integer
         correctAnswer:

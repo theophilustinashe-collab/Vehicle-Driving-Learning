@@ -1,24 +1,18 @@
 {
-  "name": "workspace",
-  "version": "0.0.0",
+  "name": "roadify",
+  "version": "1.0.0",
   "license": "MIT",
   "scripts": {
     "build": "pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
     "dev": "node ./scripts/dev.mjs",
-    "mobile:android": "pnpm --filter @workspace/vid-master run mobile:open:android",
-    "mobile:sync": "pnpm --filter @workspace/vid-master run mobile:sync",
-    "setup:windows": "setup_windows.bat"
+    "mobile:android": "pnpm --filter @roadify/vid-master run mobile:open:android",
+    "mobile:sync": "pnpm --filter @roadify/vid-master run mobile:sync",
+    "setup:windows": "setup_windows.bat",
+    "sync": "sync.bat"
   },
   "private": true,
-  "expo": {
-    "extra": {
-      "eas": {
-        "projectId": "d56253bf-5c33-44b5-9dd8-a8a07451912f"
-      }
-    }
-  },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"

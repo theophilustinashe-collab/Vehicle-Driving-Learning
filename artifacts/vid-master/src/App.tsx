@@ -2,72 +2,36 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
+import { ThemeProvider } from "next-themes";
+import { setAuthTokenGetter, setBaseUrl } from "@roadify/api-client-react";
+import { CONFIG, getApiUrl } from "@/lib/config";
 import NotFound from "@/pages/not-found";
 import React from "react";
 
 // Mobile API Configuration
-const isLocal = !window.location.hostname ||
-                window.location.hostname === 'localhost' ||
-                window.location.hostname === '127.0.0.1' ||
-                /^(\d{1,3}\.){3}\d{1,3}$/.test(window.location.hostname);
+const isNative = typeof window !== 'undefined' &&
+                 (window.navigator.userAgent.includes('Android') ||
+                  window.navigator.userAgent.includes('iPhone'));
 
-const renderUrl = 'https://vehicle-driving-learning-api-3.onrender.com';
-const localPort = '8080';
-const hardcodedIp = '192.168.1.63'; // Your PC's LAN IP
+let apiUrl = getApiUrl(isNative).replace(/\/$/, "");
 
-let apiUrl = (import.meta.env.VITE_API_URL as string);
+// [Hybrid API Routing]
+let apiUrl = getApiUrl(isNative).replace(/\/$/, "");
 
-if (!apiUrl) {
-  // Check if we are in a native app context (Android/iOS)
-  const isNative = typeof window !== 'undefined' &&
-                   (window.navigator.userAgent.includes('Android') ||
-                    window.navigator.userAgent.includes('iPhone'));
-
-  if (isNative) {
-    // For native apps, always try the online production URL first
-    apiUrl = renderUrl;
-  } else if (isLocal) {
-    const host = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-      ? 'localhost'
-      : window.location.hostname;
-
-    apiUrl = `http://${host}:${localPort}`;
-
-    // If we are likely on a phone but can't see the PC, try the hardcoded IP
-    if (host === 'localhost' && window.navigator.userAgent.includes('Mobile')) {
-      apiUrl = `http://${hardcodedIp}:${localPort}`;
-    }
-  } else {
-    apiUrl = renderUrl;
-  }
+if (!__DEV__ && CONFIG.PROD_API_URL) {
+  apiUrl = CONFIG.PROD_API_URL;
 }
 
-apiUrl = apiUrl.replace(/\/$/, "");
-
-// [Production Web Service Migration - 2026-07-05]
-console.log(`[Roadify] Initial API URL: ${apiUrl}`);
+console.log(`[Roadify] Connected to API: ${apiUrl}`);
 (window as any).apiUrl = apiUrl;
 setBaseUrl(apiUrl);
 
-// Global Auto-Fallback for "Failed to Fetch"
-if (typeof window !== 'undefined') {
+// Automatic Cloud Fallback for Native/Mobile
+if (isNative && typeof window !== 'undefined') {
   fetch(`${apiUrl}/api/healthz`).catch(() => {
-    console.warn(`[Roadify] API at ${apiUrl} unreachable. Checking fallbacks...`);
-
-    const fallbackLocal = `http://${hardcodedIp}:${localPort}`;
-    if (apiUrl !== fallbackLocal) {
-      fetch(`${fallbackLocal}/api/healthz`).then(() => {
-        apiUrl = fallbackLocal;
-        (window as any).apiUrl = apiUrl;
-        setBaseUrl(apiUrl);
-      }).catch(() => {
-        apiUrl = renderUrl;
-        (window as any).apiUrl = apiUrl;
-        setBaseUrl(apiUrl);
-      });
-    } else {
-      apiUrl = renderUrl;
+    if (apiUrl !== CONFIG.PROD_API_URL && CONFIG.PROD_API_URL) {
+      console.warn("[Roadify] Local API unreachable, falling back to Cloud...");
+      apiUrl = CONFIG.PROD_API_URL;
       (window as any).apiUrl = apiUrl;
       setBaseUrl(apiUrl);
     }
@@ -75,6 +39,8 @@ if (typeof window !== 'undefined') {
 }
 
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useOfflineSync } from "@/hooks/use-offline-sync";
+import { getSecureToken } from "@/lib/auth-bridge";
 import Home from "@/pages/Home";
 import Dashboard from "@/pages/Dashboard";
 import TestPage from "@/pages/Test";
@@ -128,7 +94,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 }
 
 // Register the API auth token getter
-setAuthTokenGetter(() => localStorage.getItem("vid_token"));
+setAuthTokenGetter(() => getSecureToken());
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -140,6 +106,7 @@ const queryClient = new QueryClient({
 });
 
 function Router() {
+  useOfflineSync();
   return (
     <ErrorBoundary>
       <Switch>
@@ -179,12 +146,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

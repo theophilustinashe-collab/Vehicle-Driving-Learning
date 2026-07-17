@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLogin, useRegister, useGetMe } from "@workspace/api-client-react";
+import { useLogin, useRegister, useGetMe } from "@roadify/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Signpost, Car, ShieldCheck, Mail, Lock, User, ArrowRight, Trophy, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { setSecureToken } from "@/lib/auth-bridge";
 import { motion, AnimatePresence } from "framer-motion";
 
 const loginSchema = z.object({
@@ -57,7 +58,7 @@ export default function Home() {
       { data },
       {
         onSuccess: (res) => {
-          localStorage.setItem("vid_token", res.token);
+          setSecureToken(res.token);
           toast({ title: "Authorized", description: "Taking you to your dashboard..." });
           setTimeout(() => {
             window.location.href = "/dashboard";
@@ -70,11 +71,12 @@ export default function Home() {
               data: {
                 name: "Google Learner",
                 email: data.email,
-                password: data.password
+                password: data.password,
+                city: "Google Sign-in"
               }
             }, {
               onSuccess: (res) => {
-                localStorage.setItem("vid_token", res.token);
+                setSecureToken(res.token);
                 window.location.href = "/dashboard";
               },
               onError: () => {
@@ -103,7 +105,7 @@ export default function Home() {
       { data },
       {
         onSuccess: (res) => {
-          localStorage.setItem("vid_token", res.token);
+          setSecureToken(res.token);
           window.location.href = "/dashboard";
         },
         onError: (err) => {
@@ -155,7 +157,7 @@ export default function Home() {
               <Signpost className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tighter">VID Master</h1>
+              <h1 className="text-3xl font-black tracking-tighter">Roadify</h1>
               <p className="text-xs font-bold tracking-[0.2em] text-primary uppercase opacity-80">Zimbabwe</p>
             </div>
           </motion.div>
@@ -211,7 +213,7 @@ export default function Home() {
           transition={{ delay: 1 }}
           className="relative z-10 text-xs font-medium tracking-wide"
         >
-          © {new Date().getFullYear()} VID Master Zimbabwe • Trusted by thousands of learners.
+          © {new Date().getFullYear()} Roadify Zimbabwe • Trusted by thousands of learners.
         </motion.div>
       </div>
 
@@ -219,7 +221,7 @@ export default function Home() {
       <div className="md:hidden bg-[#0f172a] p-6 flex items-center justify-between text-white border-b border-white/10">
         <div className="flex items-center gap-2">
           <Signpost className="w-6 h-6 text-primary" />
-          <span className="font-black text-xl tracking-tighter">VID Master</span>
+          <span className="font-black text-xl tracking-tighter">Roadify</span>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetMe } from "@workspace/api-client-react";
+import { useGetMe, customFetch } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,32 +21,25 @@ export default function GaragePage() {
   const { toast } = useToast();
   const [isBuying, setIsIdentifying] = useState<string | null>(null);
 
-  const ownedItems = JSON.parse((user as any)?.unlockedItems || "[]");
+  const ownedItems = JSON.parse(user?.unlockedItems || "[]");
 
   const handleBuy = async (itemId: string, price: number) => {
-    if (((user as any)?.coins || 0) < price) {
+    if ((user?.coins || 0) < price) {
       toast({ title: "Insufficient Coins", description: "Take more tests to earn more VID Coins!", variant: "destructive" });
       return;
     }
 
     setIsIdentifying(itemId);
     try {
-      const baseUrl = (window as any).apiUrl || `http://${window.location.hostname || 'localhost'}:8080`;
-      const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/garage/buy`, {
+      await customFetch(`/api/garage/buy`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("vid_token")}`,
-        },
         body: JSON.stringify({ itemId }),
       });
 
-      if (!response.ok) throw new Error("Purchase failed");
-
       toast({ title: "Unlock Successful!", description: "Check your profile to see your new item." });
       refetch();
-    } catch (e) {
-      toast({ title: "Error", description: "Could not complete purchase.", variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Could not complete purchase.", variant: "destructive" });
     } finally {
       setIsIdentifying(null);
     }
@@ -73,7 +66,7 @@ export default function GaragePage() {
           </div>
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 leading-none mb-1">Your Balance</p>
-            <p className="text-2xl font-black tracking-tight">{(user as any)?.coins || 0} <span className="text-primary text-xs">Coins</span></p>
+            <p className="text-2xl font-black tracking-tight">{user?.coins || 0} <span className="text-primary text-xs">Coins</span></p>
           </div>
         </div>
       </div>
@@ -81,7 +74,7 @@ export default function GaragePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {SHOP_ITEMS.map((item) => {
           const isOwned = ownedItems.includes(item.id);
-          const canAfford = ((user as any)?.coins || 0) >= item.price;
+          const canAfford = (user?.coins || 0) >= item.price;
 
           return (
             <Card key={item.id} className="border-0 shadow-xl ring-1 ring-slate-200/60 rounded-[2.5rem] overflow-hidden group">

@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { speak, stopSpeaking } from "@/lib/voice";
 import type { TestSession, AnswerInput } from "@workspace/api-client-react";
-import { getOfflineQuestions } from "@/lib/offline";
+import { getOfflineQuestions, queueTestResult } from "@/lib/offline";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +40,7 @@ export default function TestPage() {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [showFinishDialog, setShowFinishDialog] = useState(false);
 
   const handleStart = () => {
     if (!navigator.onLine) {
@@ -161,7 +162,7 @@ export default function TestPage() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (force = false) => {
     if (!session) return;
 
     const formattedAnswers: AnswerInput[] = Object.entries(answers).map(([qId, ans]) => ({
@@ -170,7 +171,8 @@ export default function TestPage() {
     }));
 
     const totalAnswered = Object.keys(answers).length;
-    if (totalAnswered < session.questions.length && !confirm(`You have only answered ${totalAnswered} out of ${session.questions.length} questions. Are you sure you want to finish?`)) {
+    if (!force && totalAnswered < session.questions.length) {
+      setShowFinishDialog(true);
       return;
     }
 
@@ -190,15 +192,15 @@ export default function TestPage() {
         };
       });
 
-      // Save to local history if possible or just navigate to dashboard with a more detailed summary
+      // Save to local queue
+      queueTestResult(session.sessionId, score, session.questions.length, offlineAnswers);
+
       toast({
         title: "Exam Finished (Offline)",
-        description: `Score: ${score}/${session.questions.length} (${Math.round((score/session.questions.length)*100)}%)`,
-        variant: score >= 22 ? "default" : "destructive"
+        description: `Score: ${score}/${session.questions.length}. Result saved and will sync when online.`,
+        variant: score >= (session.questions.length * 0.88) ? "default" : "destructive"
       });
 
-      // In a more advanced version, we'd navigate to Results with state,
-      // but for now let's at least make the transition clear.
       setSession(null);
       setLocation('/dashboard');
       return;
@@ -212,8 +214,7 @@ export default function TestPage() {
             title: "Test Submitted",
             description: `You scored ${result.score}/${result.total}`,
           });
-          // FORCE REDIRECT - using window.location for absolute certainty
-          window.location.href = `/test/${session.sessionId}/results`;
+          setLocation(`/test/${session.sessionId}/results`);
         },
         onError: (err) => {
           toast({
@@ -355,6 +356,27 @@ export default function TestPage() {
            </div>
         </div>
       </div>
+
+      {/* Finish Test Confirmation */}
+      <AlertDialog open={showFinishDialog} onOpenChange={setShowFinishDialog}>
+        <AlertDialogContent className="rounded-[2rem] max-w-[90vw] md:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-black">Finish Exam?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-500 font-medium">
+              You have only answered {Object.keys(answers).length} out of {session.questions.length} questions. Are you sure you want to submit your answers now?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-3 pt-4">
+            <AlertDialogCancel className="rounded-2xl h-12 font-black border-2 flex-1 mt-0">Go Back</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-emerald-600 text-white hover:bg-emerald-700 rounded-2xl h-12 font-black flex-1 shadow-lg shadow-emerald-200"
+              onClick={() => handleSubmit(true)}
+            >
+              Finish & Submit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* FIXED VIEWPORT CONTENT */}
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative">

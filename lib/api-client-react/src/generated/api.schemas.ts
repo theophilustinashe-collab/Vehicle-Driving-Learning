@@ -18,6 +18,7 @@ export interface RegisterInput {
   /** @minLength 6 */
   password: string;
   name: string;
+  city: string;
 }
 
 export interface LoginInput {
@@ -44,7 +45,9 @@ export interface User {
   soundEnabled: number;
   role: UserRole;
   xp: number;
+  coins: number;
   level: number;
+  unlockedItems: string;
   streak: number;
   totalTests?: number;
   /** @nullable */
@@ -175,6 +178,7 @@ export interface TestSession {
 
 export interface AnswerDetail {
   questionId: number;
+  text?: string;
   selectedAnswer: number;
   correctAnswer: number;
   isCorrect: boolean;

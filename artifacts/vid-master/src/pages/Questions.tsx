@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useListQuestions, useGetBookmarks, useAddBookmark, useRemoveBookmark } from "@workspace/api-client-react";
+import { useListQuestions, useGetBookmarks, useAddBookmark, useRemoveBookmark, customFetch } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -73,12 +73,8 @@ export default function Questions() {
     if (idx === dailyQuestion?.correctAnswer) {
       // Award XP via API
       try {
-        const baseUrl = (window as any).apiUrl || `http://${window.location.hostname || 'localhost'}:8080`;
-        await fetch(`${baseUrl.replace(/\/$/, "")}/api/progress/daily-challenge/complete`, {
+        await customFetch(`/api/progress/daily-challenge/complete`, {
           method: "POST",
-          headers: {
-            "Authorization": `Bearer ${localStorage.getItem("vid_token")}`,
-          },
         });
 
         toast({

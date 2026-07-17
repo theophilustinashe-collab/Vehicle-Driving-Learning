@@ -62,10 +62,6 @@ backend.log
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
 
-# Replit
-.cache/
-.local/
-
 # Build artifacts
 .build/
 .cxx/

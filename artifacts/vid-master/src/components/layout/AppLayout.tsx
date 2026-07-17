@@ -23,13 +23,17 @@ import {
   WifiOff,
   RefreshCw,
   AlertTriangle,
-  ClipboardList
+  ClipboardList,
+  Sun,
+  Moon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useTheme } from "next-themes";
 import React, { useState, useEffect } from "react";
 import { syncOfflineData, getLastSyncDate } from "@/lib/offline";
+import { setSecureToken } from "@/lib/auth-bridge";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -42,6 +46,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   const { data: user, isLoading } = useGetMe({
     query: {
@@ -104,7 +109,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handleLogout = () => {
     // Clear local state first to ensure immediate responsiveness
-    localStorage.removeItem("vid_token");
+    setSecureToken(null);
 
     // Call API in the background, but don't wait for it to redirect
     logout.mutate(undefined, {
@@ -125,10 +130,24 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Skeleton className="h-12 w-12 rounded-full" />
-          <Skeleton className="h-4 w-32" />
+      <div className="flex h-screen w-full items-center justify-center bg-slate-900 overflow-hidden">
+        <div className="relative">
+          {/* Animated Background Rings */}
+          <div className="absolute inset-0 -m-8 rounded-full border border-primary/20 animate-ping opacity-20" />
+          <div className="absolute inset-0 -m-16 rounded-full border border-primary/10 animate-ping opacity-10" />
+
+          <div className="flex flex-col items-center gap-6 relative z-10">
+            <div className="w-24 h-24 bg-white p-3 rounded-3xl shadow-2xl animate-bounce">
+              <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+            </div>
+            <div className="space-y-3 text-center">
+              <h2 className="text-white font-black text-2xl tracking-tighter uppercase">Roadify Master</h2>
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-sidebar-foreground/40 text-[10px] font-black uppercase tracking-[0.3em]">Connecting to VID...</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -265,6 +284,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="p-4 border-t border-sidebar-border/50 bg-sidebar-accent/5 mt-auto">
+          <div className="flex items-center justify-between mb-4 px-2">
+            <span className="text-[10px] font-black text-sidebar-foreground/30 uppercase tracking-widest">Interface</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-lg bg-white/5 border border-white/5 text-sidebar-foreground/50 hover:text-white"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+          </div>
           <div className="flex items-center gap-4 px-3 mb-6 p-3 rounded-2xl bg-white/5 border border-white/5">
             <div className="relative">
               <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-black shadow-lg border border-white/10 overflow-hidden">

@@ -1,7 +1,7 @@
 import { pgTable, serial, text, integer, real, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { usersTable } from "./users";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export const testSessionsTable = pgTable("test_sessions", {
   id: serial("id").primaryKey(),
@@ -9,7 +9,14 @@ export const testSessionsTable = pgTable("test_sessions", {
   userId: integer("user_id").notNull().references(() => usersTable.id),
   mode: text("mode").notNull().default("timed"),
   questionIds: jsonb("question_ids").notNull().$type<number[]>(),
-  answers: jsonb("answers").$type<{ questionId: number; selectedAnswer: number; isCorrect: boolean }[]>(),
+  answers: jsonb("answers").$type<{
+    questionId: number;
+    text?: string;
+    selectedAnswer: number;
+    correctAnswer: number;
+    isCorrect: boolean;
+    explanation?: string;
+  }[]>(),
   score: integer("score"),
   total: integer("total"),
   percentage: real("percentage"),

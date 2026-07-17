@@ -1,6 +1,6 @@
 {
-  "name": "@workspace/roadify",
-  "version": "0.0.0",
+  "name": "@roadify/vid-master",
+  "version": "1.0.0",
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "main": "index.js",
@@ -54,9 +54,6 @@
     "@radix-ui/react-toggle-group": "^1.1.3",
     "@radix-ui/react-tooltip": "^1.2.0",
     "@react-native/codegen": "0.81.5",
-    "@replit/vite-plugin-cartographer": "catalog:",
-    "@replit/vite-plugin-dev-banner": "catalog:",
-    "@replit/vite-plugin-runtime-error-modal": "catalog:",
     "@tailwindcss/typography": "^0.5.15",
     "@tailwindcss/vite": "catalog:",
     "@tanstack/react-query": "catalog:",
@@ -64,7 +61,7 @@
     "@types/react": "~19.1.10",
     "@types/react-dom": "~19.1.7",
     "@vitejs/plugin-react": "catalog:",
-    "@workspace/api-client-react": "workspace:*",
+    "@roadify/api-client-react": "workspace:*",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "cmdk": "^1.1.1",
@@ -99,13 +96,16 @@
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.21",
     "expo-location": "~19.0.8",
+    "expo-secure-store": "~14.0.1",
     "expo-status-bar": "~3.0.9",
+    "expo-updates": "~29.0.18",
     "react": "19.1.0",
     "react-dom": "catalog:",
     "react-easy-crop": "^6.1.0",
     "react-native": "0.81.5",
     "react-native-safe-area-context": "^5.8.0",
     "react-native-web": "^0.21.0",
-    "react-native-webview": "13.15.0"
+    "react-native-webview": "13.15.0",
+    "@supabase/supabase-js": "^2.43.2"
   }
 }

@@ -1,6 +1,4 @@
 @echo off
-set PORT=8080
-set DATABASE_URL=postgresql://neondb_owner:npg_V9WkaUpbT7Gq@ep-icy-hat-adekz7qm.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
-set SESSION_SECRET=supersecret
-set NODE_ENV=development
-node artifacts/api-server/dist/index.mjs
+REM Load environment variables from .env if possible, or just run with defaults
+REM For Windows CMD, we'll use a simple node wrapper to load env
+node -e "const fs=require('fs'); if(fs.existsSync('.env')){ const env=fs.readFileSync('.env','utf8').split('\n').forEach(line=>{const [k,v]=line.split('='); if(k&&v) process.env[k.trim()]=v.trim();}) } require('./artifacts/api-server/dist/index.mjs')"

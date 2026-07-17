@@ -1,4 +1,4 @@
-import { useGetDashboard, useGetLeaderboard, useGetMe } from "@workspace/api-client-react";
+import { useGetDashboard, useGetLeaderboard, useGetMe } from "@roadify/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -56,13 +56,43 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="p-4 md:p-8 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Skeleton className="h-32 rounded-xl" />
-          <Skeleton className="h-32 rounded-xl" />
-          <Skeleton className="h-32 rounded-xl" />
+      <div className="p-3 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 pb-32 overflow-x-hidden">
+        {/* Header Skeleton */}
+        <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 md:gap-6">
+          <div className="space-y-2">
+            <Skeleton className="h-10 md:h-14 w-64 md:w-96 rounded-xl" />
+            <Skeleton className="h-4 w-48 rounded-md" />
+          </div>
+          <Skeleton className="h-20 w-full lg:w-64 rounded-2xl" />
         </div>
-        <Skeleton className="h-[400px] rounded-xl" />
+
+        {stats grid skeleton here}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="border-0 shadow-sm ring-1 ring-border rounded-2xl md:rounded-3xl">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 md:p-6">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-4 w-4 rounded-full" />
+              </CardHeader>
+              <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+                <Skeleton className="h-10 w-24 mb-3" />
+                <Skeleton className="h-2 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Secondary Grid Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+           <Skeleton className="h-48 rounded-[2.5rem]" />
+           <Skeleton className="h-48 rounded-[2.5rem]" />
+        </div>
+
+        {/* Large Action Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+           <Skeleton className="md:col-span-2 h-24 rounded-[2rem]" />
+           <Skeleton className="h-24 rounded-[2rem]" />
+        </div>
       </div>
     );
   }

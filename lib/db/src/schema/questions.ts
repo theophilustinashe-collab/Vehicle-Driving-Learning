@@ -1,6 +1,6 @@
 import { pgTable, serial, text, integer, timestamp, pgEnum, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export const difficultyEnum = pgEnum("difficulty", ["easy", "medium", "hard"]);
 export const questionStatusEnum = pgEnum("question_status", ["draft", "approved", "published", "archived"]);

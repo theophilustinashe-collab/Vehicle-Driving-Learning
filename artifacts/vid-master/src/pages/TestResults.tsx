@@ -227,7 +227,7 @@ export default function TestResults() {
                 <div className="space-y-6 flex-1">
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Question {idx + 1}</p>
-                    <p className="text-xl font-bold text-slate-900 leading-tight">Question details will be fetched in full review mode. ID: {ans.questionId}</p>
+                    <p className="text-xl font-bold text-slate-900 leading-tight">{ans.text || `Question ID: ${ans.questionId}`}</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

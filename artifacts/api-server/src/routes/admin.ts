@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, usersTable, questionsTable, testSessionsTable, roadSignsTable } from "@workspace/db";
+import { db, usersTable, questionsTable, testSessionsTable, roadSignsTable } from "@roadify/db";
 import { eq, count, desc } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
@@ -7,7 +7,7 @@ import { logger } from "../lib/logger";
 
 const router = Router();
 
-router.post("/seed", async (req, res) => {
+router.post("/seed", requireAuth, requireAdmin, async (req, res) => {
   try {
     const questions = [
       {
