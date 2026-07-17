@@ -66,7 +66,7 @@ export default function Dashboard() {
           <Skeleton className="h-20 w-full lg:w-64 rounded-2xl" />
         </div>
 
-        {stats grid skeleton here}
+        {/* Stats grid skeleton */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="border-0 shadow-sm ring-1 ring-border rounded-2xl md:rounded-3xl">

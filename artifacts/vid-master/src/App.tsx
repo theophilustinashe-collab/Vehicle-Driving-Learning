@@ -16,8 +16,6 @@ const isNative = typeof window !== 'undefined' &&
 let apiUrl = getApiUrl(isNative).replace(/\/$/, "");
 
 // [Hybrid API Routing]
-let apiUrl = getApiUrl(isNative).replace(/\/$/, "");
-
 if (!__DEV__ && CONFIG.PROD_API_URL) {
   apiUrl = CONFIG.PROD_API_URL;
 }
