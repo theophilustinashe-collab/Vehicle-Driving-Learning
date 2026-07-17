@@ -8,7 +8,7 @@ buildscript {
   dependencies {
     classpath('com.android.tools.build:gradle:8.5.0')
     classpath('com.facebook.react:react-native-gradle-plugin')
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20')
   }
 }
 
@@ -18,7 +18,7 @@ ext {
     compileSdkVersion = 35
     targetSdkVersion = 34
     ndkVersion = "26.1.10909125"
-    kotlinVersion = "2.0.21"
+    kotlinVersion = "2.1.20"
 }
 
 allprojects {
@@ -30,18 +30,17 @@ allprojects {
 
   // Shorten build paths on Windows to avoid "Filename too long" errors
   if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-      // Redirect build directory for subprojects to a very short path to avoid MAX_PATH issues.
-      // We use a directory in the user's home folder which is typically much shorter.
-      def userHome = System.getProperty("user.home")
-      if (project != rootProject && project.name != "app") {
-          def isNodeModule = projectDir.absolutePath.contains("node_modules") || projectDir.absolutePath.contains(".pnpm")
-          if (isNodeModule) {
-              def shortHash = project.name.hashCode().abs() % 10000
+      def configureShortPaths = { p ->
+          if (p != rootProject && p.name != "app") {
+              def userHome = System.getProperty("user.home")
+              def shortHash = p.path.hashCode().abs()
               def newBuildDir = file("$userHome/.b/$shortHash")
-              project.layout.buildDirectory.set(newBuildDir)
-              project.buildDir = newBuildDir
+              p.layout.buildDirectory.set(newBuildDir)
+              p.buildDir = newBuildDir
           }
       }
+      configureShortPaths(project)
+      afterEvaluate { p -> configureShortPaths(p) }
   }
 }
 
@@ -63,7 +62,7 @@ subprojects {
                         cmake {
                             if (System.getProperty("os.name").toLowerCase().contains("windows")) {
                                 def userHome = System.getProperty("user.home")
-                                def shortHash = project.name.hashCode().abs() % 10000
+                                def shortHash = project.path.hashCode().abs()
                                 buildStagingDirectory = "$userHome/.c/$shortHash"
                             }
                         }

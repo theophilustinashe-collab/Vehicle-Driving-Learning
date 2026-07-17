@@ -1,10 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AndroidLayouts">
+    <shared>
+      <config />
+    </shared>
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a24fbbf3-9b96-441e-8e83-dceba08f5ebd" name="Changes" comment="" />
+    <list default="true" id="a24fbbf3-9b96-441e-8e83-dceba08f5ebd" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../src/hooks/use-offline-sync.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/lib/auth-bridge.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/lib/config.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/lib/supabase.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.replit" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.replitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/../../../Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/.replit-artifact/artifact.toml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/admin.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/admin.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/auth.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/garage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/garage.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/health.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/health.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/progress.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/progress.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/questions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/questions.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/signs.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/signs.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../api-server/src/routes/tests.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../api-server/src/routes/tests.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../mockup-sandbox/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../mockup-sandbox/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../mockup-sandbox/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../mockup-sandbox/vite.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.replit-artifact/artifact.toml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../eas.json" beforeDir="false" afterPath="$PROJECT_DIR$/../eas.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/components/layout/AppLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/components/layout/AppLayout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/lib/offline.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/lib/offline.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Garage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Garage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/History.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/History.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Home.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Home.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Questions.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Questions.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/Test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/Test.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/pages/TestResults.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../src/pages/TestResults.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../vite.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/api-client-react/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/api-client-react/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/api-client-react/src/generated/api.schemas.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/api-client-react/src/generated/api.schemas.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/api-client-react/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/api-client-react/src/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/api-spec/openapi.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/api-spec/openapi.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/api-spec/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/api-spec/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/api-zod/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/api-zod/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/db/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/db/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/db/src/schema/questions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/questions.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/db/src/schema/roadSigns.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/roadSigns.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/db/src/schema/testSessions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/testSessions.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../lib/db/src/schema/users.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../../lib/db/src/schema/users.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../../package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../../../pnpm-lock.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../pnpm-workspace.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../../../pnpm-workspace.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../render.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../replit.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../run_backend.bat" beforeDir="false" afterPath="$PROJECT_DIR$/../../../run_backend.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../run_frontend.bat" beforeDir="false" afterPath="$PROJECT_DIR$/../../../run_frontend.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../scripts/dev.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/../../../scripts/dev.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../scripts/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../../scripts/package.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -53,7 +121,7 @@
 }</component>
   <component name="RunManager">
     <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
-      <module name="VID_Master.app" />
+      <module name="Roadify.app" />
       <option name="ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" value="1" />
       <option name="DEPLOY" value="true" />
       <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
