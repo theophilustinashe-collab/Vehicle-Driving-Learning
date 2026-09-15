@@ -7,7 +7,7 @@ export const CONFIG = {
   // Hosted Production Endpoints (Overridable by ENV)
   PROD_API_URL: (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL) ||
                 (import.meta?.env?.VITE_API_URL) ||
-                'https://bhsubgivjtyeexgkbpxg.supabase.co',
+                'https://vehicle-driving-learning-4.onrender.com',
 
   PROD_WEB_URL: (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_WEB_URL) ||
                 (import.meta?.env?.VITE_WEB_URL) ||
