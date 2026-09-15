@@ -11,7 +11,6 @@ import * as Speech from 'expo-speech';
 
 // Shared Production & Cloud Configuration
 const PROD_WEB_URL = process.env.EXPO_PUBLIC_WEB_URL || 'https://roadify-app.vercel.app';
-const LOCAL_ASSET_URL = 'file:///android_asset/public/index.html';
 const WEB_PORT = 3001;
 
 function AppContent() {
@@ -22,18 +21,18 @@ function AppContent() {
   const [canGoBack, setCanGoBack] = useState(false);
   const colorScheme = useColorScheme();
 
-  // Detect server URL: prioritize EXPO_PUBLIC_WEB_URL, then Expo Go debugger host, then Cloud Production URL / Local Bundle
+  // Detect server URL: prioritize EXPO_PUBLIC_WEB_URL, then Expo Go debugger host, then Cloud Production URL
   const expoIp = Constants.expoConfig?.hostUri?.split(':')[0] ||
                  Constants.manifest2?.extra?.expoGo?.debuggerHost?.split(':')[0] ||
                  Constants.manifest?.debuggerHost?.split(':')[0];
 
   const envWebUrl = process.env.EXPO_PUBLIC_WEB_URL;
 
-  // In development, connect to dev server; in production standalone APKs, load local bundle or HTTPS URL
+  // In development, connect to dev server; in production standalone APKs, load hosted production web app
   const initialServerUrl = envWebUrl ||
     (__DEV__ && expoIp && expoIp !== 'localhost' && expoIp !== '127.0.0.1'
       ? `http://${expoIp}:${WEB_PORT}`
-      : (Platform.OS === 'android' ? LOCAL_ASSET_URL : PROD_WEB_URL));
+      : PROD_WEB_URL);
 
   const [currentUrl, setCurrentUrl] = useState(initialServerUrl);
 
