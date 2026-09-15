@@ -19,7 +19,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./src/assets/logo.png",
+        "backgroundColor": "#0c4a35"
       },
       "package": "com.roadify.app",
       "usesCleartextTraffic": true,
@@ -31,21 +32,23 @@
         "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
+    "splash": {
+      "image": "./src/assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0c4a35"
+    },
     "plugins": [
       [
         "expo-location",
         {
           "locationAlwaysPermission": "Allow Roadify to use your location."
         }
-      ],
-      "expo-dev-client"
+      ]
     ],
     "web": {
       "bundler": "metro"
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.1",
     "extra": {
       "eas": {
         "projectId": "39675c10-618b-486d-b8e6-bb801d095cfe"

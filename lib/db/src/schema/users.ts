@@ -25,8 +25,9 @@ export const usersTable = pgTable("users", {
   lastDailyChallengeAt: timestamp("last_daily_challenge_at"),
   lastActiveAt: timestamp("last_active_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"),
 });
 
-export const insertUserSchema = createInsertSchema(usersTable).omit({ id: true, createdAt: true, lastActiveAt: true });
+export const insertUserSchema = createInsertSchema(usersTable).omit({ id: true, createdAt: true, lastActiveAt: true, deletedAt: true });
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof usersTable.$inferSelect;

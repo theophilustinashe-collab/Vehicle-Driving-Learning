@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
 const port = 3001;
-const basePath = "/";
+const basePath = "./";
 
 export default defineConfig({
   base: basePath,

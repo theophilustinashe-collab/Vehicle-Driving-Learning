@@ -4,10 +4,34 @@ import { eq, count, desc } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { logger } from "../lib/logger";
+import { z } from "zod";
 
 const router = Router();
 
+const questionSchema = z.object({
+  text: z.string().min(1),
+  options: z.array(z.string()).min(2),
+  correctAnswer: z.number().int(),
+  category: z.string().min(1),
+  difficulty: z.enum(["easy", "medium", "hard"]),
+  explanation: z.string().min(1),
+  imageUrl: z.string().nullable().optional(),
+  status: z.enum(["draft", "approved", "published", "archived"]).optional(),
+});
+
+const signSchema = z.object({
+  name: z.string().min(1),
+  category: z.string().min(1),
+  meaning: z.string().min(1),
+  imageUrl: z.string().url(),
+  usage: z.string().optional().nullable(),
+});
+
 router.post("/seed", requireAuth, requireAdmin, async (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    res.status(403).json({ error: "Seeding is disabled in production" });
+    return;
+  }
   try {
     const questions = [
       {
@@ -253,8 +277,12 @@ router.get("/questions", requireAuth, requireAdmin, async (req, res) => {
 
 router.post("/questions", requireAuth, requireAdmin, async (req, res) => {
   try {
-    const data = req.body;
-    const [question] = await db.insert(questionsTable).values(data).returning();
+    const validation = questionSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ error: "Invalid question data", details: validation.error.format() });
+      return;
+    }
+    const [question] = await db.insert(questionsTable).values(validation.data).returning();
     res.status(201).json(question);
   } catch (err) {
     logger.error({ err }, "Create question error");
@@ -265,8 +293,12 @@ router.post("/questions", requireAuth, requireAdmin, async (req, res) => {
 router.patch("/questions/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id as string);
-    const data = req.body;
-    const [updated] = await db.update(questionsTable).set(data).where(eq(questionsTable.id, id)).returning();
+    const validation = questionSchema.partial().safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ error: "Invalid question data", details: validation.error.format() });
+      return;
+    }
+    const [updated] = await db.update(questionsTable).set(validation.data).where(eq(questionsTable.id, id)).returning();
     if (!updated) {
       res.status(404).json({ error: "Question not found" });
       return;
@@ -301,8 +333,12 @@ router.get("/signs", requireAuth, requireAdmin, async (req, res) => {
 
 router.post("/signs", requireAuth, requireAdmin, async (req, res) => {
   try {
-    const data = req.body;
-    const [sign] = await db.insert(roadSignsTable).values(data).returning();
+    const validation = signSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ error: "Invalid sign data", details: validation.error.format() });
+      return;
+    }
+    const [sign] = await db.insert(roadSignsTable).values(validation.data).returning();
     res.status(201).json(sign);
   } catch (err) {
     logger.error({ err }, "Create sign error");
@@ -313,8 +349,12 @@ router.post("/signs", requireAuth, requireAdmin, async (req, res) => {
 router.patch("/signs/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id as string);
-    const data = req.body;
-    const [updated] = await db.update(roadSignsTable).set(data).where(eq(roadSignsTable.id, id)).returning();
+    const validation = signSchema.partial().safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ error: "Invalid sign data", details: validation.error.format() });
+      return;
+    }
+    const [updated] = await db.update(roadSignsTable).set(validation.data).where(eq(roadSignsTable.id, id)).returning();
     if (!updated) {
       res.status(404).json({ error: "Sign not found" });
       return;

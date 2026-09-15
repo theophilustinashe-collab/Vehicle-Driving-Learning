@@ -16,8 +16,9 @@ export const questionsTable = pgTable("questions", {
   imageUrl: text("image_url"),
   status: questionStatusEnum("status").notNull().default("published"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"),
 });
 
-export const insertQuestionSchema = createInsertSchema(questionsTable).omit({ id: true, createdAt: true });
+export const insertQuestionSchema = createInsertSchema(questionsTable).omit({ id: true, createdAt: true, deletedAt: true });
 export type InsertQuestion = z.infer<typeof insertQuestionSchema>;
 export type Question = typeof questionsTable.$inferSelect;

@@ -11,12 +11,18 @@
         "buildType": "apk"
       },
       "env": {
-        "EAS_NO_FROZEN_LOCKFILE": "1"
+        "EAS_NO_FROZEN_LOCKFILE": "1",
+        "EXPO_PUBLIC_WEB_URL": "https://roadify-app.vercel.app",
+        "EXPO_PUBLIC_API_URL": "https://bhsubgivjtyeexgkbpxg.supabase.co"
       },
       "channel": "preview"
     },
     "production": {
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_WEB_URL": "https://roadify-app.vercel.app",
+        "EXPO_PUBLIC_API_URL": "https://bhsubgivjtyeexgkbpxg.supabase.co"
+      }
     }
   },
   "submit": {

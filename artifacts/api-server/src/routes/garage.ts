@@ -3,18 +3,23 @@ import { db, usersTable } from "@roadify/db";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { logger } from "../lib/logger";
+import { z } from "zod";
 
 const router = Router();
+
+const buyItemSchema = z.object({
+  itemId: z.string().min(1),
+});
 
 router.post("/buy", requireAuth, async (req, res) => {
   try {
     const { userId } = (req as typeof req & { user: { userId: number } }).user;
-    const { itemId } = req.body;
-
-    if (!itemId) {
-      res.status(400).json({ error: "itemId is required" });
+    const validation = buyItemSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ error: "Invalid purchase request" });
       return;
     }
+    const { itemId } = validation.data;
 
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
     if (!user) {

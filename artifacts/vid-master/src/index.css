@@ -60,8 +60,8 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Deep Green and Gold palette */
-  --background: 142 20% 98%;
+  /* Refined Zimbabwe Heritage Palette (Deep Green & Vibrant Gold) */
+  --background: 142 30% 98.5%;
   --foreground: 142 50% 10%;
   --border: 142 20% 90%;
   --input: 142 20% 90%;
@@ -78,13 +78,13 @@
   --primary: 142 71% 25%;
   --primary-foreground: 0 0% 100%;
   
-  --secondary: 45 93% 47%;
-  --secondary-foreground: 142 71% 25%;
+  --secondary: 45 100% 50%; /* Pure Gold */
+  --secondary-foreground: 142 71% 20%;
 
   --muted: 142 20% 94%;
   --muted-foreground: 142 20% 45%;
 
-  --accent: 142 20% 94%;
+  --accent: 45 100% 96%; /* Soft Gold Tint */
   --accent-foreground: 142 71% 25%;
 
   --destructive: 0 84% 60%;
@@ -93,66 +93,66 @@
   --sidebar: 142 71% 25%;
   --sidebar-foreground: 0 0% 100%;
   --sidebar-border: 142 71% 20%;
-  --sidebar-primary: 45 93% 47%;
+  --sidebar-primary: 45 100% 50%;
   --sidebar-primary-foreground: 142 71% 25%;
   --sidebar-accent: 142 71% 30%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-ring: 45 93% 47%;
+  --sidebar-ring: 45 100% 50%;
 
   --chart-1: 142 71% 25%;
-  --chart-2: 45 93% 47%;
+  --chart-2: 45 100% 50%;
   --chart-3: 142 20% 45%;
   --chart-4: 0 84% 60%;
   --chart-5: 200 80% 50%;
 
-  --app-font-sans: 'Inter', sans-serif;
+  --app-font-sans: 'Inter', system-ui, sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: Menlo, monospace;
-  --radius: 0.5rem;
+  --radius: 1rem; /* Slightly more rounded for modern feel */
 }
 
 .dark {
-  --background: 142 50% 5%;
-  --foreground: 142 20% 98%;
-  --border: 142 30% 15%;
-  --input: 142 30% 15%;
-  --ring: 142 71% 40%;
+  --background: 222 47% 4%; /* Deep Midnight Blue/Black */
+  --foreground: 213 31% 91%;
+  --border: 217 33% 17%;
+  --input: 217 33% 17%;
+  --ring: 142 71% 45%;
 
-  --card: 142 50% 7%;
-  --card-foreground: 142 20% 98%;
-  --card-border: 142 30% 15%;
+  --card: 222 47% 6%;
+  --card-foreground: 213 31% 91%;
+  --card-border: 217 33% 17%;
 
-  --popover: 142 50% 7%;
-  --popover-foreground: 142 20% 98%;
-  --popover-border: 142 30% 15%;
+  --popover: 222 47% 6%;
+  --popover-foreground: 213 31% 91%;
+  --popover-border: 217 33% 17%;
 
   --primary: 142 71% 40%;
-  --primary-foreground: 142 50% 5%;
+  --primary-foreground: 222 47% 4%;
 
-  --secondary: 45 93% 55%;
-  --secondary-foreground: 142 50% 5%;
+  --secondary: 45 100% 50%;
+  --secondary-foreground: 222 47% 4%;
 
-  --muted: 142 30% 15%;
-  --muted-foreground: 142 20% 65%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
 
-  --accent: 142 30% 15%;
-  --accent-foreground: 142 20% 98%;
+  --accent: 217 33% 17%;
+  --accent-foreground: 210 40% 98%;
 
-  --destructive: 0 62% 40%;
+  --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --sidebar: 142 50% 5%;
-  --sidebar-foreground: 142 20% 98%;
-  --sidebar-border: 142 30% 15%;
+  --sidebar: 222 47% 4%;
+  --sidebar-foreground: 213 31% 91%;
+  --sidebar-border: 217 33% 12%;
   --sidebar-primary: 142 71% 40%;
-  --sidebar-primary-foreground: 142 50% 5%;
-  --sidebar-accent: 142 30% 15%;
-  --sidebar-accent-foreground: 142 20% 98%;
+  --sidebar-primary-foreground: 222 47% 4%;
+  --sidebar-accent: 217 33% 17%;
+  --sidebar-accent-foreground: 210 40% 98%;
   --sidebar-ring: 142 71% 40%;
 
   --chart-1: 142 71% 40%;
   --chart-2: 45 93% 55%;
-  --chart-3: 142 20% 65%;
+  --chart-3: 215 20% 65%;
   --chart-4: 0 62% 40%;
   --chart-5: 200 80% 60%;
 }
@@ -160,9 +160,26 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body {
+    @apply h-full overflow-hidden;
+    overscroll-behavior-y: none;
   }
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+  h1 {
+    font-size: clamp(1.5rem, 5vw, 3rem);
+    @apply font-black tracking-tighter;
+  }
+  h2 {
+    font-size: clamp(1.25rem, 4vw, 2.25rem);
+    @apply font-black tracking-tight;
+  }
+  h3 {
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    @apply font-bold;
   }
 }
 
@@ -209,5 +226,11 @@
 
 .animate-car-indicator {
   animation: car-indicator 0.8s step-end infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 

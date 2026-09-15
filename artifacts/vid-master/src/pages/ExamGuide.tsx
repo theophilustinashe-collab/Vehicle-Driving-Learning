@@ -14,12 +14,33 @@ import {
   Eye,
   Smartphone,
   Lightbulb,
-  ArrowLeft
+  ArrowLeft,
+  Sparkles,
+  Trophy
 } from "lucide-react";
 import { Link } from "wouter";
+import { useGetDashboard } from "@roadify/api-client-react";
+import { useMemo } from "react";
+import { motion } from "framer-motion";
 
 export default function ExamGuidePage() {
+  const { data: dashboard } = useGetDashboard();
+
+  const projectedMastery = useMemo(() => {
+    if (!dashboard) return null;
+    if (dashboard.examReadiness >= 100) return { date: "Today!", days: 0 };
+    const remaining = 100 - dashboard.examReadiness;
+    const daysToReady = Math.ceil(remaining / 7);
+    const date = new Date();
+    date.setDate(date.getDate() + daysToReady);
+    return {
+      date: date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }),
+      days: daysToReady
+    };
+  }, [dashboard]);
+
   const steps = [
+// ...
     {
       title: "Essential Documents",
       icon: FileText,
@@ -60,9 +81,20 @@ export default function ExamGuidePage() {
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8 pb-32">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-black tracking-tight text-primary uppercase">The Exam Day Guide</h1>
-        <p className="text-muted-foreground font-bold">Your step-by-step roadmap to success at the VID Depot.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+          <h1 className="text-xl md:text-2xl font-black tracking-tight text-primary uppercase leading-none">Exam Day Guide</h1>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Official VID Success Roadmap</p>
+        </div>
+        {projectedMastery && (
+          <div className="bg-emerald-50 border border-emerald-100 px-4 py-2.5 rounded-xl flex items-center gap-3 shrink-0">
+             <div className="bg-emerald-500 p-1.5 rounded-lg text-white"><Sparkles size={14} className="animate-pulse" /></div>
+             <div>
+                <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest leading-none">Full Mastery & Target Exam</p>
+                <p className="text-xs font-black text-emerald-900 mt-0.5">{projectedMastery.date}</p>
+             </div>
+          </div>
+        )}
       </div>
 
       <Card className="border-0 shadow-2xl ring-1 ring-border bg-slate-900 text-white overflow-hidden relative rounded-[2.5rem]">
@@ -169,11 +201,6 @@ export default function ExamGuidePage() {
             Run One Last Mock Exam
             <ChevronRight className="w-5 h-5" />
           </Button>
-        </Link>
-        <Link href="/dashboard">
-           <Button variant="outline" size="lg" className="h-16 px-10 rounded-2xl font-black text-lg border-2 w-full sm:w-auto animate-car-indicator">
-             <ArrowLeft className="w-5 h-5 mr-2" /> Return to Dashboard
-           </Button>
         </Link>
       </div>
     </div>

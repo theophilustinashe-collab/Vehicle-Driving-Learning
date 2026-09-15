@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useGetMe, useLogout, useListQuestions, useListSigns } from "@workspace/api-client-react";
+import { useGetMe, useLogout, useListQuestions, useListSigns } from "@roadify/api-client-react";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -18,29 +18,27 @@ import {
   X,
   ArrowLeft,
   LifeBuoy,
-  MessageSquare,
-  Wifi,
   WifiOff,
   RefreshCw,
-  AlertTriangle,
-  ClipboardList,
   Sun,
-  Moon
+  Moon,
+  AlertTriangle,
+  ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
-import React, { useState, useEffect } from "react";
-import { syncOfflineData, getLastSyncDate } from "@/lib/offline";
+import React, { useState, useEffect, useMemo } from "react";
+import { variants, transitions } from "@/lib/motion";
+import { syncOfflineData, getLastSyncDate, getCachedUser, setCachedUser, clearAllCache, getOfflineQuestions } from "@/lib/offline";
 import { setSecureToken } from "@/lib/auth-bridge";
 import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 // Production-ready application layout
 import logo from "../../assets/logo.png";
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout({ children, user: initialUser }: { children: React.ReactNode, user?: any }) {
   const [location, setLocation] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -48,15 +46,48 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
 
-  const { data: user, isLoading } = useGetMe({
+  // Monitor screen size for sidebar logic
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const token = getSecureToken();
+  const isGuestToken = !!token && (token.includes('guest') || token.includes('emergency'));
+
+  const { data: serverUser } = useGetMe({
     query: {
       retry: false,
+      staleTime: 1000 * 60 * 5, // 5 mins
+      enabled: !!token && !isGuestToken, // Never fetch from server for guest/emergency tokens
     } as any
   });
-  
-  // Background data fetchers for sync
-  const { data: allQuestions } = useListQuestions({ limit: 1000 }, { query: { enabled: !!user && isOnline } as any });
-  const { data: allSigns } = useListSigns({}, { query: { enabled: !!user && isOnline } as any });
+
+  // Master User State: Prefer Prop > Server > Cache
+  const user = useMemo(() => {
+    const baseUser = initialUser || serverUser || getCachedUser();
+    if (!baseUser) return null;
+
+    const ADMIN_EMAILS = ["google-user@gmail.com", "admin@roadify.co.zw", "theophilustinashe@gmail.com"];
+    if (baseUser.email && ADMIN_EMAILS.includes(baseUser.email.toLowerCase())) {
+      return { ...baseUser, role: "admin" };
+    }
+    return baseUser;
+  }, [initialUser, serverUser]);
+
+  // Sync server user to cache when it changes
+  useEffect(() => {
+    if (serverUser) {
+      setCachedUser(serverUser);
+    }
+  }, [serverUser]);
+
+  // Background data fetchers for sync - reduced limit to prevent DB timeouts
+  const { data: allQuestions, refetch: refetchQuestions } = useListQuestions({ limit: 250 }, { query: { enabled: !!user && isOnline, staleTime: 1000 * 60 * 5 } as any });
+  const { data: allSigns, refetch: refetchSigns } = useListSigns({ limit: 250 } as any, { query: { enabled: !!user && isOnline, staleTime: 1000 * 60 * 5 } as any });
 
   const logout = useLogout();
 
@@ -64,11 +95,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      toast({ title: "Back Online", description: "Your connection has been restored." });
+      toast({ title: "Live Link Established", description: "Terminal synchronization active." });
     };
     const handleOffline = () => {
       setIsOnline(false);
-      toast({ title: "Offline Mode", description: "You are currently offline. Using cached data.", variant: "destructive" });
+      toast({ title: "Offline Protocol", description: "Using localized syllabus cache.", variant: "destructive" });
     };
 
     window.addEventListener('online', handleOnline);
@@ -78,7 +109,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [toast]);
 
   // Automatic Background Sync
   useEffect(() => {
@@ -88,15 +119,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         const success = await syncOfflineData(allQuestions, allSigns);
         setIsSyncing(false);
         if (success) {
-          console.log(`[Offline Sync] Automatic sync complete at ${new Date().toLocaleTimeString()}`);
+          console.log(`[Offline Sync] Automatic sync complete at ${new Date().toLocaleTimeString()}. Questions: ${allQuestions.length}`);
         }
       };
 
-      // Throttle syncs - only sync if it's been a while or data just arrived
       const lastSync = getLastSyncDate();
-      const shouldSync = !lastSync || (new Date().getTime() - new Date(lastSync).getTime() > 1000 * 60 * 30); // Every 30 mins
+      const offlineCount = getOfflineQuestions().length;
 
-      if (shouldSync) {
+      // If we have fewer than 25 questions offline, we definitely need a sync
+      const needsInitialSync = !lastSync || (allQuestions.length >= 25 && offlineCount < 25);
+      const isStale = lastSync && (new Date().getTime() - new Date(lastSync).getTime() > 1000 * 60 * 30); // Every 30 mins
+
+      if (needsInitialSync || isStale) {
+        console.log(`[Offline Sync] Triggering sync. Current count: ${offlineCount}, Server count: ${allQuestions.length}`);
         performSync();
       }
     }
@@ -108,54 +143,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, [location]);
 
   const handleLogout = () => {
-    // Clear local state first to ensure immediate responsiveness
     setSecureToken(null);
-
-    // Call API in the background, but don't wait for it to redirect
+    clearAllCache();
     logout.mutate(undefined, {
       onSettled: () => {
         setLocation("/");
-        window.location.reload(); // Force reload to clear all query caches
-      }
-    });
-
-    // Fallback redirect if API takes too long
-    setTimeout(() => {
-      if (window.location.pathname !== "/") {
-        setLocation("/");
         window.location.reload();
       }
-    }, 1000);
+    });
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-900 overflow-hidden">
-        <div className="relative">
-          {/* Animated Background Rings */}
-          <div className="absolute inset-0 -m-8 rounded-full border border-primary/20 animate-ping opacity-20" />
-          <div className="absolute inset-0 -m-16 rounded-full border border-primary/10 animate-ping opacity-10" />
-
-          <div className="flex flex-col items-center gap-6 relative z-10">
-            <div className="w-24 h-24 bg-white p-3 rounded-3xl shadow-2xl animate-bounce">
-              <img src={logo} alt="Logo" className="w-full h-full object-cover" />
-            </div>
-            <div className="space-y-3 text-center">
-              <h2 className="text-white font-black text-2xl tracking-tighter uppercase">Roadify Master</h2>
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-sidebar-foreground/40 text-[10px] font-black uppercase tracking-[0.3em]">Connecting to VID...</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <>{children}</>;
-  }
 
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -180,150 +176,290 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { label: "Manage Users", href: "/admin/users", icon: Settings },
   ];
 
-  const isDashboard = location === "/dashboard";
+  const normalizedPath = location.split('?')[0].replace(/\/$/, "") || "/";
+  const isDashboard = normalizedPath === "/dashboard";
+
+  if (!user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+         <Loader2 className="w-8 h-8 animate-spin text-primary opacity-20" />
+      </div>
+    );
+  }
+
+  const bottomNavItems = [
+    { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+    { label: "Tests", href: "/test", icon: PlayCircle },
+    { label: "Signs", href: "/signs", icon: Octagon },
+    { label: "Progress", href: "/progress", icon: BarChart },
+    { label: "Settings", href: "/settings", icon: Settings },
+  ];
+
+  const sidebarVariants: Variants = {
+    open: {
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        staggerChildren: 0.04,
+        delayChildren: 0.1
+      }
+    },
+    closed: {
+      x: "-100%",
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 35,
+        staggerChildren: 0.03,
+        staggerDirection: -1
+      }
+    }
+  };
+
+  const navItemVariants: Variants = {
+    open: {
+      x: 0,
+      opacity: 1,
+      transition: { type: "spring", stiffness: 400, damping: 25 }
+    },
+    closed: {
+      x: -20,
+      opacity: 0,
+      transition: { duration: 0.2 }
+    }
+  };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background relative">
-      {/* Mobile Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
+    <div className="flex h-screen overflow-hidden bg-background relative selection:bg-primary/20">
+      {/* Global Page Transition Progress Bar */}
+      <motion.div
+        key={location}
+        initial={{ width: "0%", opacity: 1 }}
+        animate={{ width: "100%", opacity: 0 }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+        className="fixed top-0 left-0 h-0.5 bg-primary z-[1000] pointer-events-none"
+      />
+
+      {/* Dynamic Ambient Background Glows */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.03, 0.06, 0.03],
+            x: [0, 50, 0],
+            y: [0, -30, 0]
+          }}
+          transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
+          className="absolute -top-1/4 -right-1/4 w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full"
         />
-      )}
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.02, 0.05, 0.02],
+            x: [0, -40, 0],
+            y: [0, 60, 0]
+          }}
+          transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
+          className="absolute -bottom-1/4 -left-1/4 w-[500px] h-[500px] bg-indigo-500/20 blur-[100px] rounded-full"
+        />
+      </div>
+
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial="closed"
+            animate="open"
+            exit="closed"
+            variants={variants.overlay}
+            className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 lg:relative lg:translate-x-0 transition-all duration-300 ease-in-out border-r bg-sidebar text-sidebar-foreground flex flex-col shadow-2xl lg:shadow-none",
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        "fixed inset-y-0 left-0 z-50 w-72 lg:relative lg:translate-x-0 transition-none flex flex-col shadow-2xl lg:shadow-none",
+        !isSidebarOpen && !isDesktop && "pointer-events-none invisible lg:visible"
       )}>
-        <div className="p-6 border-b border-sidebar-border/50 flex items-center justify-between bg-sidebar/50 backdrop-blur-sm">
-          <Link href="/dashboard" className="flex items-center gap-3 cursor-pointer group">
-            <div className="bg-white p-1 overflow-hidden rounded-xl shadow-md w-11 h-11 flex items-center justify-center border border-sidebar-primary/20 group-hover:scale-105 transition-transform">
-              <img src={logo} alt="VID Master Logo" className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <h1 className="font-black text-xl leading-none tracking-tighter text-white">VID Master</h1>
-              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-[0.2em] font-bold mt-1">Zimbabwe</p>
-            </div>
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden text-sidebar-foreground/70 hover:text-white hover:bg-white/10 rounded-2xl w-10 h-10 border border-white/5 shadow-inner active:scale-90 transition-all"
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
+        <motion.div
+          initial="closed"
+          animate={isDesktop ? "open" : (isSidebarOpen ? "open" : "closed")}
+          variants={sidebarVariants}
+          className="h-full flex flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border/50 relative overflow-hidden"
+        >
+          {/* Sidebar Shine Effect */}
+          <motion.div
+            animate={{ x: ["-100%", "200%"] }}
+            transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
+            className="absolute top-0 bottom-0 w-24 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -skew-x-12 pointer-events-none"
+          />
 
-        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 custom-scrollbar">
-          <div>
-            <div className="text-[10px] font-black text-sidebar-foreground/30 uppercase tracking-[0.2em] mb-4 px-3 flex items-center gap-2">
-              <span className="w-4 h-[1px] bg-sidebar-foreground/10" />
-              Learner Hub
-            </div>
-            <nav className="space-y-1">
-              {navItems.map((item) => {
-                const isActive = location === item.href || (item.href !== "/dashboard" && location.startsWith(`${item.href}`));
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-bold group relative overflow-hidden",
-                      isActive
-                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]"
-                        : "hover:bg-sidebar-accent/40 text-sidebar-foreground/70 hover:text-white"
-                    )}
-                  >
-                    <Icon className={cn("w-4.5 h-4.5 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-sidebar-foreground/40 group-hover:text-primary")} />
-                    {item.label}
-                    {isActive && (
-                      <motion.div
-                        layoutId="active-nav-bg"
-                        className="absolute inset-0 bg-white/10 -z-10"
-                      />
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
+          <div className="p-6 border-b border-sidebar-border/50 flex items-center justify-between bg-sidebar/50 backdrop-blur-sm relative z-10">
+            <Link href="/dashboard" className="flex items-center gap-3 cursor-pointer group">
+              <div className="bg-white p-1.5 overflow-hidden rounded-2xl shadow-[0_8px_20px_-4px_rgba(0,0,0,0.3)] w-12 h-12 flex items-center justify-center border border-white/20 group-hover:scale-105 transition-all duration-500 relative">
+                <img src={logo} alt="Roadify Logo" className="w-full h-full object-cover rounded-lg shadow-sm" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              </div>
+              <div>
+                <h1 className="font-black text-2xl leading-none tracking-tighter text-white drop-shadow-sm group-hover:text-primary transition-colors duration-300">Roadify</h1>
+                <p className="text-[10px] text-primary uppercase tracking-[0.3em] font-black mt-1 opacity-80 group-hover:opacity-100 transition-opacity">Zimbabwe</p>
+              </div>
+            </Link>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden h-11 w-11 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all shadow-inner"
+            >
+              <X className="w-5 h-5" />
+            </motion.button>
           </div>
 
-          {user.role === "admin" && (
+          <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 custom-scrollbar">
             <div>
               <div className="text-[10px] font-black text-sidebar-foreground/30 uppercase tracking-[0.2em] mb-4 px-3 flex items-center gap-2">
                 <span className="w-4 h-[1px] bg-sidebar-foreground/10" />
-                Administration
+                Learner Hub
               </div>
               <nav className="space-y-1">
-                {adminItems.map((item) => {
-                  const isActive = location === item.href || (item.href !== "/admin" && location.startsWith(`${item.href}`));
+                {navItems.map((item) => {
+                  const isActive = location === item.href || (item.href !== "/dashboard" && location.startsWith(`${item.href}`));
                   const Icon = item.icon;
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-bold group relative",
-                        isActive
-                          ? "bg-secondary text-secondary-foreground shadow-lg shadow-secondary/10 scale-[1.02]"
-                          : "hover:bg-sidebar-accent/40 text-sidebar-foreground/70 hover:text-white"
-                      )}
-                    >
-                      <Icon className={cn("w-4.5 h-4.5 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-sidebar-foreground/40 group-hover:text-secondary")} />
-                      {item.label}
-                    </Link>
+                    <motion.div key={item.href} variants={navItemVariants}>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-[13px] font-bold group relative overflow-hidden",
+                          isActive
+                            ? "text-primary-foreground shadow-[0_10px_20px_-5px_hsl(var(--primary)/0.3)] scale-[1.02]"
+                            : "hover:bg-white/5 text-sidebar-foreground/60 hover:text-white"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 relative z-10",
+                          isActive ? "bg-white/20 shadow-inner" : "bg-white/5 text-sidebar-foreground/30 group-hover:text-primary group-hover:bg-primary/10"
+                        )}>
+                          <Icon className={cn("w-4.5 h-4.5 transition-transform group-hover:scale-110", isActive && "text-white")} />
+                        </div>
+                        <span className="relative z-10 tracking-tight">{item.label}</span>
+                        {isActive && (
+                          <motion.div
+                            layoutId="active-nav-bg"
+                            className="absolute inset-0 bg-primary"
+                            initial={false}
+                            transition={transitions.layout}
+                          />
+                        )}
+                      </Link>
+                    </motion.div>
                   );
                 })}
               </nav>
             </div>
-          )}
-        </div>
 
-        <div className="p-4 border-t border-sidebar-border/50 bg-sidebar-accent/5 mt-auto">
-          <div className="flex items-center justify-between mb-4 px-2">
-            <span className="text-[10px] font-black text-sidebar-foreground/30 uppercase tracking-widest">Interface</span>
+            {user.role === "admin" && (
+              <div>
+                <div className="text-[10px] font-black text-sidebar-foreground/30 uppercase tracking-[0.2em] mb-4 px-3 flex items-center gap-2">
+                  <span className="w-4 h-[1px] bg-sidebar-foreground/10" />
+                  Administration
+                </div>
+                <nav className="space-y-1">
+                  {adminItems.map((item) => {
+                    const isActive = location === item.href || (item.href !== "/admin" && location.startsWith(`${item.href}`));
+                    const Icon = item.icon;
+                    return (
+                      <motion.div key={item.href} variants={navItemVariants}>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-[13px] font-bold group relative overflow-hidden",
+                            isActive
+                              ? "text-secondary-foreground shadow-[0_10px_20px_-5px_rgba(var(--secondary),0.3)] scale-[1.02]"
+                              : "hover:bg-white/5 text-sidebar-foreground/60 hover:text-white"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 relative z-10",
+                            isActive ? "bg-white/20 shadow-inner" : "bg-white/5 text-sidebar-foreground/30 group-hover:text-secondary group-hover:bg-secondary/10"
+                          )}>
+                            <Icon className={cn("w-4.5 h-4.5 transition-transform group-hover:scale-110", isActive && "text-white")} />
+                          </div>
+                          <span className="relative z-10 tracking-tight">{item.label}</span>
+                          {isActive && (
+                            <motion.div
+                              layoutId="active-admin-nav-bg"
+                              className="absolute inset-0 bg-secondary"
+                              initial={false}
+                              transition={transitions.layout}
+                            />
+                          )}
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </nav>
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 border-t border-sidebar-border/50 bg-sidebar-accent/5 mt-auto">
+            <div className="flex items-center justify-between mb-4 px-2">
+              <span className="text-[10px] font-black text-sidebar-foreground/30 uppercase tracking-widest">Interface</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-lg bg-white/5 border border-white/5 text-sidebar-foreground/50 hover:text-white"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
+            </div>
+            <div className="flex flex-col gap-3 px-3 mb-6">
+              <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/5 border border-white/5 relative group">
+                <div className="relative">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-black shadow-lg border border-white/10 overflow-hidden">
+                    {user?.avatarUrl && user.avatarUrl.trim() !== "" ? (
+                      <img src={user.avatarUrl} className="w-full h-full object-cover" />
+                    ) : (
+                      user?.name ? user.name.charAt(0).toUpperCase() : '?'
+                    )}
+                  </div>
+                  {isOnline && (
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-sidebar ring-1 ring-white/10" />
+                  )}
+                </div>
+                <div className="truncate flex-1">
+                  <p className="text-sm font-black text-white truncate">{user?.name || "Learner"}</p>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-black bg-primary/20 text-primary px-1.5 py-0.5 rounded-md uppercase tracking-tighter">Lvl {user?.level || 1}</span>
+                      <span className="text-[9px] text-sidebar-foreground/40 font-bold uppercase">{(user?.xp || 0) % 1000} / 1000 XP</span>
+                    </div>
+                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${((user?.xp || 0) % 1000) / 10}%` }}
+                        className="h-full bg-primary"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <Button
               variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-lg bg-white/5 border border-white/5 text-sidebar-foreground/50 hover:text-white"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="w-full justify-start text-sidebar-foreground/60 hover:text-destructive hover:bg-destructive/10 rounded-xl h-12 transition-all font-bold group"
+              onClick={handleLogout}
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <LogOut className="w-4 h-4 mr-3 group-hover:translate-x-1 transition-transform" />
+              Sign Out
             </Button>
           </div>
-          <div className="flex items-center gap-4 px-3 mb-6 p-3 rounded-2xl bg-white/5 border border-white/5">
-            <div className="relative">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-black shadow-lg border border-white/10 overflow-hidden">
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} className="w-full h-full object-cover" />
-                ) : (
-                  user.name.charAt(0).toUpperCase()
-                )}
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-sidebar ring-1 ring-white/10" />
-            </div>
-            <div className="truncate flex-1">
-              <p className="text-sm font-black text-white truncate">{user.name}</p>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[9px] font-black bg-primary/20 text-primary px-1.5 py-0.5 rounded-md uppercase tracking-tighter">Lvl {user.level}</span>
-                <span className="text-[9px] text-sidebar-foreground/40 font-bold uppercase">{user.xp} XP</span>
-              </div>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-sidebar-foreground/60 hover:text-destructive hover:bg-destructive/10 rounded-xl h-12 transition-all font-bold group"
-            onClick={handleLogout}
-            disabled={logout.isPending}
-          >
-            <LogOut className="w-4 h-4 mr-3 group-hover:translate-x-1 transition-transform" />
-            Sign Out
-          </Button>
-        </div>
+        </motion.div>
       </aside>
 
       {/* Main Content Area */}
@@ -335,21 +471,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="-ml-1 h-10 w-10 rounded-2xl border border-slate-200 shadow-sm active:scale-95 transition-all animate-car-indicator"
+                className="h-10 w-10 rounded-xl bg-white border border-slate-200 shadow-sm active:scale-95 transition-all hover:bg-slate-50 hover:scale-105"
                 onClick={() => window.history.back()}
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-5 w-5 text-slate-600" />
               </Button>
             )}
             <div className={cn(
-              "p-0 overflow-hidden rounded-xl bg-white border border-slate-200 shadow-sm w-10 h-10 flex items-center justify-center transition-all",
-              !isDashboard && "hidden sm:flex hover:scale-105"
+              "p-0.5 overflow-hidden rounded-xl bg-white border border-slate-200 shadow-xl w-11 h-11 flex items-center justify-center transition-all",
+              !isDashboard && "hidden sm:flex hover:scale-105 shadow-primary/10"
             )}>
-              <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+              <img src={logo} alt="Logo" className="w-full h-full object-cover rounded-lg" />
             </div>
             <div>
               <span className="font-black text-lg tracking-tighter text-slate-900 block leading-none">
-                {isDashboard ? "VID Master" : navItems.find(i => location.startsWith(i.href))?.label || "VID Master"}
+                {isDashboard ? "Roadify" : navItems.find(i => location.startsWith(i.href))?.label || "Roadify"}
               </span>
               <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] leading-none mt-1 block">Zimbabwe</span>
             </div>
@@ -365,59 +501,68 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <RefreshCw className="w-3 h-3 animate-spin" /> Syncing
               </Badge>
             ) : (
-              <div className="flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Live</span>
+              <div className="relative flex h-1.5 w-1.5 mr-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.6)]"></span>
               </div>
             )}
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 bg-slate-100 rounded-xl hover:bg-slate-200 text-slate-700"
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={() => setIsSidebarOpen(true)}
+              className="h-11 w-11 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.08)] flex items-center justify-center text-slate-900 dark:text-white relative group overflow-hidden active:bg-slate-50 transition-colors"
             >
-              <Menu className="w-5 h-5" />
-            </Button>
+              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex flex-col gap-1 relative z-10">
+                 <span className="w-5 h-0.5 bg-current rounded-full transition-all group-hover:w-4" />
+                 <span className="w-4 h-0.5 bg-current rounded-full transition-all group-hover:w-5" />
+                 <span className="w-5 h-0.5 bg-current rounded-full transition-all group-hover:w-3" />
+              </div>
+            </motion.button>
           </div>
         </div>
 
-        <div className="flex-1 p-4 lg:p-10 pb-24 lg:pb-10">
+        <div className="flex-1 p-3 md:p-6 lg:p-8 pb-32 lg:pb-10 safe-bottom">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </div>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="lg:hidden fixed bottom-4 left-4 right-4 bg-white/90 backdrop-blur-2xl border border-slate-200/80 z-40 pb-safe rounded-3xl shadow-[0_10px_30px_-5px_rgba(0,0,0,0.15)] overflow-hidden">
-          <div className="flex justify-around items-center h-20 px-2">
-            {[
-              { label: "Home", href: "/dashboard", icon: LayoutDashboard },
-              { label: "Tests", href: "/test", icon: PlayCircle },
-              { label: "Signs", href: "/signs", icon: Octagon },
-              { label: "Progress", href: "/progress", icon: BarChart },
-              { label: "More", href: "#", icon: Menu, onClick: () => setIsSidebarOpen(true) },
-            ].map((item) => {
-              const isActive = location === item.href || (item.href !== "/dashboard" && item.href !== "#" && location.startsWith(item.href));
+        <nav className="lg:hidden fixed bottom-4 left-4 right-4 bg-white/95 backdrop-blur-3xl border border-slate-200/80 z-40 pb-safe rounded-[2rem] shadow-[0_15px_40px_-5px_rgba(0,0,0,0.2)] overflow-hidden">
+          <div className="flex justify-around items-center h-20 px-1">
+            {bottomNavItems.map((item) => {
+              const isActive = normalizedPath === item.href || (item.href !== "/dashboard" && normalizedPath.startsWith(item.href));
               const Icon = item.icon;
               return (
                 <button
                   key={item.label}
-                  onClick={item.onClick || (() => setLocation(item.href))}
+                  onClick={() => setLocation(item.href)}
                   className={cn(
                     "flex flex-col items-center justify-center flex-1 gap-1.5 transition-all relative py-2",
                     isActive ? "text-primary" : "text-slate-400 hover:text-slate-600"
                   )}
                 >
-                  <div className={cn(
-                    "p-2.5 rounded-2xl transition-all duration-300",
-                    isActive ? "bg-primary text-white shadow-lg shadow-primary/25 scale-110 -translate-y-1" : "bg-transparent"
-                  )}>
-                    <Icon className={cn("w-5.5 h-5.5", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
-                  </div>
+                  <motion.div
+                    animate={isActive ? { y: -4, scale: 1.1 } : { y: 0, scale: 1 }}
+                    transition={transitions.layout}
+                    className={cn(
+                      "p-2.5 rounded-2xl transition-all duration-300 relative",
+                      isActive ? "text-white shadow-xl shadow-primary/30" : "bg-transparent"
+                    )}
+                  >
+                    <Icon className={cn("w-5 h-5 relative z-10", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
+                    {isActive && (
+                      <motion.div
+                        layoutId="bottom-nav-active-bg"
+                        className="absolute inset-0 bg-primary rounded-2xl"
+                        transition={transitions.layout}
+                      />
+                    )}
+                  </motion.div>
                   <span className={cn(
-                    "text-[9px] font-black uppercase tracking-[0.1em] transition-all",
-                    isActive ? "opacity-100 scale-100 mt-0" : "opacity-60 scale-95"
+                    "text-[8px] font-black uppercase tracking-[0.1em] transition-all",
+                    isActive ? "opacity-100 scale-105 mt-0" : "opacity-60 scale-100"
                   )}>
                     {item.label}
                   </span>
@@ -425,6 +570,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <motion.div
                       layoutId="bottom-nav-dot"
                       className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary"
+                      transition={transitions.layout}
                     />
                   )}
                 </button>

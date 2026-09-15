@@ -1,10 +1,28 @@
 import express, { type Express } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import pinoHttp from "pino-http";
+import { rateLimit } from "express-rate-limit";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
+
+// Security Headers
+app.use(helmet());
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: { error: "Too many requests, please try again later." },
+});
+
+app.use("/api/", limiter);
+
+app.get("/ping", (_req, res) => res.send("pong"));
 
 app.use(
   pinoHttp({
@@ -25,54 +43,32 @@ app.use(
     },
   }),
 );
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://roadify-app.vercel.app",
+  // Add other production origins here
+];
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
+    // Allow requests with no origin (like mobile apps)
     if (!origin) return callback(null, true);
 
-    // In production, you would list your actual domains here
-    // For now, we allow the local network for your testing
-    callback(null, true);
+    if (allowedOrigins.includes(origin) || origin.startsWith("http://192.168.")) {
+      callback(null, true);
+    } else {
+      logger.warn({ origin }, "CORS blocked origin");
+      callback(new Error("Not allowed by CORS"));
+    }
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
 
-// Manual Security Headers (Helmet-lite)
-app.use((_req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
-  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  res.setHeader("Content-Security-Policy", "default-src 'self'; img-src * 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
-  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  next();
-});
-
-// Simple Rate Limiter to prevent brute force
-const requestCounts = new Map<string, { count: number; resetTime: number }>();
-app.use((req, res, next) => {
-  const ip = req.ip || req.socket.remoteAddress || "unknown";
-  const now = Date.now();
-  const windowMs = 15 * 60 * 1000; // 15 minutes
-  const maxRequests = 500;
-
-  const userRequests = requestCounts.get(ip);
-  if (!userRequests || now > userRequests.resetTime) {
-    requestCounts.set(ip, { count: 1, resetTime: now + windowMs });
-  } else {
-    userRequests.count++;
-    if (userRequests.count > maxRequests) {
-      logger.warn({ ip }, "Rate limit exceeded");
-      res.status(429).json({ error: "Too many requests. Please try again later." });
-      return;
-    }
-  }
-  next();
-});
-
-app.use(express.json({ limit: '10mb' })); // Reduced from 50mb for security
+app.use(express.json({ limit: '10mb' })); // Increased for administrative asset uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging for debugging
@@ -82,5 +78,14 @@ app.use((req, _res, next) => {
 });
 
 app.use("/api", router);
+
+// Global Error Handler
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error({ err, url: _req.url }, "Unhandled Error");
+  res.status(err.status || 500).json({
+    error: "Internal Server Error",
+    message: err.message || "An unexpected error occurred"
+  });
+});
 
 export default app;

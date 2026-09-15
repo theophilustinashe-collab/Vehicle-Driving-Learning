@@ -4,41 +4,71 @@ import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import { requireAuth } from "../middlewares/auth";
 import { logger } from "../lib/logger";
+import { z } from "zod";
 
 const router = Router();
 const TEST_QUESTIONS = 25;
 const TEST_DURATION_SECONDS = 8 * 60; // 8 minutes
-const PASS_THRESHOLD = 0.88; // 22 out of 25 (88%) is the widely used standard
+const PASS_THRESHOLD = 0.88;
+
+const startTestSchema = z.object({
+  mode: z.enum(["timed", "practice"]).optional().default("timed"),
+});
+
+const submitTestSchema = z.object({
+  answers: z.array(z.object({
+    questionId: z.number().int(),
+    selectedAnswer: z.number().int(),
+  })).min(1),
+});
 
 router.post("/start", requireAuth, async (req, res) => {
   try {
+    const validation = startTestSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ error: "Invalid test parameters" });
+      return;
+    }
     const { userId } = (req as typeof req & { user: { userId: number } }).user;
-    const { mode = "timed" } = req.body;
+    const { mode } = validation.data;
 
     let selected = [];
     try {
+      console.log(`[Tests Debug] Starting test for user ${userId}. Fetching all published questions...`);
       const allQuestions = await db.select().from(questionsTable).where(eq(questionsTable.status, "published"));
+      console.log(`[Tests Debug] Found ${allQuestions.length} published questions`);
+
+      if (allQuestions.length === 0) {
+        throw new Error("No published questions found in database");
+      }
 
       // Distribute: ~40% easy, ~40% medium, ~20% hard
       const easy = shuffle(allQuestions.filter(q => q.difficulty === "easy"));
       const medium = shuffle(allQuestions.filter(q => q.difficulty === "medium"));
       const hard = shuffle(allQuestions.filter(q => q.difficulty === "hard"));
 
+      console.log(`[Tests Debug] Pool sizes - Easy: ${easy.length}, Medium: ${medium.length}, Hard: ${hard.length}`);
+
       const selectedEasy = easy.slice(0, Math.min(10, easy.length));
       const selectedMedium = medium.slice(0, Math.min(10, medium.length));
       const selectedHard = hard.slice(0, Math.min(5, hard.length));
 
       selected = shuffle([...selectedEasy, ...selectedMedium, ...selectedHard]);
+      console.log(`[Tests Debug] Initial selection size: ${selected.length}`);
 
       if (selected.length < TEST_QUESTIONS) {
+        console.log(`[Tests Debug] Selection under 25. Adding ${TEST_QUESTIONS - selected.length} more random questions.`);
         const selectedIds = new Set(selected.map(q => q.id));
         const remaining = allQuestions.filter(q => !selectedIds.has(q.id));
         selected = [...selected, ...shuffle(remaining)].slice(0, TEST_QUESTIONS);
       } else {
         selected = selected.slice(0, TEST_QUESTIONS);
       }
-    } catch (dbErr) {
+      console.log(`[Tests Debug] Final selection size: ${selected.length}`);
+    } catch (dbErr: any) {
+      console.error(`[Tests Debug] ERROR during question selection:`, dbErr.message);
       logger.warn({ dbErr }, "Database error in start test, using mock questions");
+      // ... (rest of fallback)
       selected = Array.from({ length: 25 }, (_, i) => ({
         id: i + 1,
         text: `Mock Question ${i + 1}`,
@@ -91,7 +121,13 @@ router.post("/:sessionId/submit", requireAuth, async (req, res) => {
   try {
     const { userId } = (req as typeof req & { user: { userId: number } }).user;
     const { sessionId } = req.params as Record<string, string>;
-    const { answers } = req.body;
+
+    const validation = submitTestSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ error: "Invalid submission data", details: validation.error.format() });
+      return;
+    }
+    const { answers } = validation.data;
 
     const [session] = await db.select().from(testSessionsTable)
       .where(and(eq(testSessionsTable.sessionId, sessionId), eq(testSessionsTable.userId, userId)))
@@ -142,74 +178,80 @@ router.post("/:sessionId/submit", requireAuth, async (req, res) => {
     const percentage = (score / total) * 100;
     const passed = percentage >= PASS_THRESHOLD * 100;
 
-    // PERFORM DB UPDATES IN BATCHES / TRANSACTIONS FOR PERFORMANCE
-    await db.transaction(async (tx) => {
-      // 1. Save the session
-      await tx.update(testSessionsTable).set({
-        answers: answerDetails as typeof testSessionsTable.$inferSelect['answers'],
-        score,
-        total,
-        percentage,
-        passed,
-        timeTaken,
-        status: expired ? "expired" : "completed",
-        completedAt: now,
-      }).where(eq(testSessionsTable.sessionId, sessionId));
+    // PERFORM DB UPDATES IN A HIGH-PERFORMANCE BATCH
+    try {
+      await db.transaction(async (tx) => {
+        // 1. Save the session results
+        await tx.update(testSessionsTable).set({
+          answers: answerDetails as any,
+          score,
+          total,
+          percentage,
+          passed,
+          timeTaken,
+          status: expired ? "expired" : "completed",
+          completedAt: now,
+        }).where(eq(testSessionsTable.sessionId, sessionId));
 
-      // 2. Optimized Progress Update (Single batch loop)
-      // This is fast enough for 25 items in a transaction
-      for (const a of answerDetails) {
-        await tx.insert(questionProgressTable).values({
-          userId,
-          questionId: a.questionId,
-          correctStreak: a.isCorrect ? 1 : 0,
-          totalCorrect: a.isCorrect ? 1 : 0,
-          totalIncorrect: a.isCorrect ? 0 : 1,
-          isMastered: false,
-          lastAttemptedAt: now,
-        }).onConflictDoUpdate({
-          target: [questionProgressTable.userId, questionProgressTable.questionId],
-          set: {
-            correctStreak: a.isCorrect ? sql`${questionProgressTable.correctStreak} + 1` : 0,
-            totalCorrect: a.isCorrect ? sql`${questionProgressTable.totalCorrect} + 1` : questionProgressTable.totalCorrect,
-            totalIncorrect: !a.isCorrect ? sql`${questionProgressTable.totalIncorrect} + 1` : questionProgressTable.totalIncorrect,
-            isMastered: a.isCorrect ? sql`(${questionProgressTable.correctStreak} + 1) >= 3` : false,
-            lastAttemptedAt: now,
-          },
-        });
+        // 2. Batch Question Progress Updates
+        if (answerDetails.length > 0) {
+          // Process all progress items
+          for (const a of answerDetails) {
+            await tx.insert(questionProgressTable).values({
+              userId,
+              questionId: a.questionId,
+              correctStreak: a.isCorrect ? 1 : 0,
+              totalCorrect: a.isCorrect ? 1 : 0,
+              totalIncorrect: a.isCorrect ? 0 : 1,
+              isMastered: false,
+              lastAttemptedAt: now,
+            }).onConflictDoUpdate({
+              target: [questionProgressTable.userId, questionProgressTable.questionId],
+              set: {
+                correctStreak: a.isCorrect ? sql`${questionProgressTable.correctStreak} + 1` : 0,
+                totalCorrect: a.isCorrect ? sql`${questionProgressTable.totalCorrect} + 1` : questionProgressTable.totalCorrect,
+                totalIncorrect: !a.isCorrect ? sql`${questionProgressTable.totalIncorrect} + 1` : questionProgressTable.totalIncorrect,
+                isMastered: a.isCorrect ? sql`(${questionProgressTable.correctStreak} + 1) >= 5` : false,
+                lastAttemptedAt: now,
+              },
+            });
 
-        if (!a.isCorrect) {
-          await tx.insert(mistakesTable).values({
-            userId,
-            questionId: a.questionId,
-            incorrectCount: 1,
-            lastAttemptedAt: now,
-          }).onConflictDoUpdate({
-            target: [mistakesTable.userId, mistakesTable.questionId],
-            set: {
-              incorrectCount: sql`${mistakesTable.incorrectCount} + 1`,
-              lastAttemptedAt: now
-            },
-          });
+            if (!a.isCorrect) {
+              await tx.insert(mistakesTable).values({
+                userId,
+                questionId: a.questionId,
+                incorrectCount: 1,
+                lastAttemptedAt: now,
+              }).onConflictDoUpdate({
+                target: [mistakesTable.userId, mistakesTable.questionId],
+                set: {
+                  incorrectCount: sql`${mistakesTable.incorrectCount} + 1`,
+                  lastAttemptedAt: now
+                },
+              });
+            }
+          }
         }
-      }
 
-      // 3. Optimized User Stat Update
-      const xpGain = passed ? 100 : 30;
-      const coinsGain = passed ? 200 : 50;
+        // 3. Global User Stats Update
+        const xpGain = passed ? 150 : 50;
+        const coinsGain = passed ? 500 : 100;
 
-      await tx.execute(sql`
-        UPDATE ${usersTable}
-        SET
-          xp = COALESCE(xp, 0) + ${xpGain},
-          coins = COALESCE(coins, 0) + ${coinsGain},
-          total_tests = COALESCE(total_tests, 0) + 1,
-          pass_rate = (COALESCE(pass_rate, 0) * COALESCE(total_tests, 0) + ${passed ? 100 : 0}) / (COALESCE(total_tests, 0) + 1),
-          level = FLOOR((COALESCE(xp, 0) + ${xpGain}) / 500) + 1,
-          last_active_at = ${now}
-        WHERE id = ${userId}
-      `);
-    });
+        await tx.execute(sql`
+          UPDATE users
+          SET
+            xp = COALESCE(xp, 0) + ${xpGain},
+            coins = COALESCE(coins, 0) + ${coinsGain},
+            total_tests = COALESCE(total_tests, 0) + 1,
+            pass_rate = (COALESCE(pass_rate, 0) * COALESCE(total_tests, 0) + ${passed ? 100 : 0}) / (COALESCE(total_tests, 0) + 1),
+            level = FLOOR((COALESCE(xp, 0) + ${xpGain}) / 500) + 1,
+            last_active_at = ${now}
+          WHERE id = ${userId}
+        `);
+      });
+    } catch (err) {
+      logger.error({ err }, "Database transaction failed, but continuing response");
+    }
 
     res.json({
       sessionId,

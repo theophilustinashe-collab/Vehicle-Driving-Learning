@@ -21,17 +21,10 @@ def runNodeCommand = { List<String> args ->
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
 react {
-    def resolveEntry = {
-        try {
-            return file(runNodeCommand(["-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"]))
-        } catch (Exception ignored) {
-            return file("../../index.js")
-        }
-    }
-    entryFile = resolveEntry()
+    root = file("../../").absoluteFile
+    entryFile = file("../../index.js").absoluteFile
     def reactNativePath = new File(runNodeCommand(["--print", "require.resolve('react-native/package.json')"])).getParentFile().absolutePath
     reactNativeDir = file(reactNativePath)
-    // hermesCommand = new File(reactNativePath, "sdks/hermesc/%OS-BIN%/hermesc").absolutePath
     codegenDir = file(new File(runNodeCommand(["--print", "require.resolve('@react-native/codegen/package.json')"])).getParentFile().absolutePath)
 
     enableBundleCompression = (findProperty('android.enableBundleCompression') ?: false).toBoolean()
@@ -39,10 +32,6 @@ react {
     // works correctly with Expo projects.
     cliFile = new File(runNodeCommand(["--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"]))
     bundleCommand = "export:embed"
-
-    /* Folders */
-     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
-    // root = file("../../")
     //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
     // reactNativeDir = file("../../node_modules/react-native")
     //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
@@ -124,15 +113,29 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            if (project.hasProperty('ROADIFY_RELEASE_STORE_FILE')) {
+                storeFile file(ROADIFY_RELEASE_STORE_FILE)
+                storePassword ROADIFY_RELEASE_STORE_PASSWORD
+                keyAlias ROADIFY_RELEASE_KEY_ALIAS
+                keyPassword ROADIFY_RELEASE_KEY_PASSWORD
+            } else {
+                // Fallback to local generated one for initial setup
+                storeFile file('release.keystore')
+                storePassword 'roadify123'
+                keyAlias 'roadify-alias'
+                keyPassword 'roadify123'
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // Signing is required for Play Store
+            signingConfig signingConfigs.release
+
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds

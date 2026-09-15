@@ -7,6 +7,8 @@ import progressRouter from "./progress";
 import signsRouter from "./signs";
 import adminRouter from "./admin";
 import garageRouter from "./garage";
+import shopRouter from "./shop";
+import bookmarksRouter from "./bookmarks";
 
 const router: IRouter = Router();
 
@@ -18,5 +20,7 @@ router.use("/progress", progressRouter);
 router.use("/signs", signsRouter);
 router.use("/admin", adminRouter);
 router.use("/garage", garageRouter);
+router.use("/shop", shopRouter);
+router.use("/bookmarks", bookmarksRouter);
 
 export default router;

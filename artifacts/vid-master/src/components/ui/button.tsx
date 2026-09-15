@@ -1,6 +1,8 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { motion, useReducedMotion } from "framer-motion"
+import { tapScale, hoverScale, transitions } from "@/lib/motion"
 
 import { cn } from "@/lib/utils"
 
@@ -11,28 +13,21 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-           // @replit: no hover, and add primary border
            "bg-primary text-primary-foreground border border-primary-border",
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm border-destructive-border",
         outline:
-          // @replit Shows the background color of whatever card / sidebar / accent background it is inside of.
-          // Inherits the current text color. Uses shadow-xs. no shadow on active
-          // No hover state
           " border [border-color:var(--button-outline)] shadow-xs active:shadow-none ",
         secondary:
-          // @replit border, no hover, no shadow, secondary border.
           "border bg-secondary text-secondary-foreground border border-secondary-border ",
-        // @replit no hover, transparent border
         ghost: "border border-transparent",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        // @replit changed sizes
-        default: "min-h-9 px-4 py-2",
-        sm: "min-h-8 rounded-md px-3 text-xs",
-        lg: "min-h-10 rounded-md px-8",
-        icon: "h-9 w-9",
+        default: "min-h-11 px-6 py-2.5",
+        sm: "min-h-9 rounded-xl px-4 text-xs",
+        lg: "min-h-14 rounded-2xl px-10 text-base",
+        icon: "h-11 w-11",
       },
     },
     defaultVariants: {
@@ -50,11 +45,18 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+    const Comp = asChild ? Slot : motion.button
+    const motionProps = asChild ? {} : {
+      whileTap: { scale: tapScale },
+      whileHover: { scale: hoverScale },
+      transition: transitions.default
+    }
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        {...motionProps as any}
         {...props}
       />
     )

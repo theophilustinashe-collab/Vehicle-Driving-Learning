@@ -1,20 +1,32 @@
 import * as React from "react"
-
+import { motion } from "framer-motion"
+import { tapScale, hoverScale, transitions } from "@/lib/motion"
 import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-xl border bg-card text-card-foreground shadow",
-      className
-    )}
-    {...props}
-  />
-))
+  React.HTMLAttributes<HTMLDivElement> & { interactive?: boolean }
+>(({ className, interactive, ...props }, ref) => {
+  const Comp = interactive ? motion.div : "div";
+  const motionProps = interactive ? {
+    whileHover: { y: -4, scale: hoverScale, boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)" },
+    whileTap: { scale: tapScale },
+    transition: transitions.default
+  } : {};
+
+  return (
+    <Comp
+      ref={ref as any}
+      className={cn(
+        "rounded-xl border bg-card text-card-foreground shadow transition-shadow",
+        interactive && "cursor-pointer hover:shadow-lg",
+        className
+      )}
+      {...motionProps}
+      {...props as any}
+    />
+  );
+})
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<

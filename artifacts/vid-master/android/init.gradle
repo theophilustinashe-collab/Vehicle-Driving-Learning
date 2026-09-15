@@ -1,0 +1,7 @@
+allprojects {
+    if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+        def userHome = System.getProperty("user.home")
+        def shortHash = (project.rootDir.absolutePath + project.path).hashCode().abs()
+        project.layout.buildDirectory.set(file("$userHome/.b/$shortHash"))
+    }
+}

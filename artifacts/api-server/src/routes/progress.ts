@@ -225,6 +225,60 @@ router.get("/category-breakdown", requireAuth, async (req, res) => {
   }
 });
 
+router.get("/daily-challenge", requireAuth, async (req, res) => {
+  try {
+    const { userId } = (req as typeof req & { user: { userId: number } }).user;
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const [question] = await db.select()
+      .from(questionsTable)
+      .where(eq(questionsTable.status, "published"))
+      .orderBy(sql`RANDOM()`)
+      .limit(1);
+
+    let completedToday = false;
+    if (user.lastDailyChallengeAt) {
+      const today = new Date().setHours(0, 0, 0, 0);
+      const last = new Date(user.lastDailyChallengeAt).setHours(0, 0, 0, 0);
+      completedToday = (today === last);
+    }
+
+    res.json({
+      question,
+      completedToday,
+    });
+  } catch (err) {
+    logger.error({ err }, "Get daily challenge error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/weak-spots", requireAuth, async (req, res) => {
+  try {
+    const { userId } = (req as typeof req & { user: { userId: number } }).user;
+
+    const weakSpots = await db.select({
+      category: questionsTable.category,
+      mistakeCount: sql<number>`sum(${mistakesTable.incorrectCount})::int`
+    })
+      .from(mistakesTable)
+      .innerJoin(questionsTable, eq(mistakesTable.questionId, questionsTable.id))
+      .where(eq(mistakesTable.userId, userId))
+      .groupBy(questionsTable.category)
+      .having(sql`sum(${mistakesTable.incorrectCount}) >= 3`);
+
+    res.json(weakSpots);
+  } catch (err) {
+    logger.error({ err }, "Get weak spots error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.get("/mistakes", requireAuth, async (req, res) => {
   try {
     const { userId } = (req as typeof req & { user: { userId: number } }).user;
@@ -348,6 +402,23 @@ router.post("/daily-challenge/complete", requireAuth, async (req, res) => {
       }
     }
 
+    const today = new Date().setHours(0,0,0,0);
+    let newStreak = (user.streak ?? 0);
+
+    if (lastChallenge) {
+      const last = new Date(lastChallenge).setHours(0,0,0,0);
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (last === yesterday.getTime()) {
+        newStreak += 1;
+      } else {
+        newStreak = 1;
+      }
+    } else {
+      newStreak = 1;
+    }
+
     const xpGain = 50;
     const newXp = (user.xp ?? 0) + xpGain;
     const newLevel = Math.floor(newXp / 500) + 1;
@@ -355,11 +426,18 @@ router.post("/daily-challenge/complete", requireAuth, async (req, res) => {
     await db.update(usersTable).set({
       xp: newXp,
       level: newLevel,
+      streak: newStreak,
       lastDailyChallengeAt: now,
       lastActiveAt: now,
     }).where(eq(usersTable.id, userId));
 
-    res.json({ message: "Challenge complete", xpEarned: xpGain, totalXp: newXp, level: newLevel });
+    res.json({
+      message: "Challenge complete",
+      xpEarned: xpGain,
+      totalXp: newXp,
+      level: newLevel,
+      streak: newStreak
+    });
   } catch (err) {
     logger.error({ err }, "Daily challenge error");
     res.status(500).json({ error: "Internal server error" });
@@ -376,6 +454,45 @@ router.delete("/bookmarks/:questionId", requireAuth, async (req, res) => {
   } catch (err) {
     logger.error({ err }, "Remove bookmark error");
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/reset", requireAuth, async (req, res) => {
+  try {
+    const { userId } = (req as typeof req & { user: { userId: number } }).user;
+
+    await db.transaction(async (tx) => {
+      // 1. Wipe test history
+      await tx.delete(testSessionsTable).where(eq(testSessionsTable.userId, userId));
+
+      // 2. Wipe question progress & mastery
+      await tx.delete(questionProgressTable).where(eq(questionProgressTable.userId, userId));
+
+      // 3. Wipe mistakes bank
+      await tx.delete(mistakesTable).where(eq(mistakesTable.userId, userId));
+
+      // 4. Wipe bookmarks
+      await tx.delete(bookmarksTable).where(eq(bookmarksTable.userId, userId));
+
+      // 4b. Wipe earned badges
+      await tx.delete(userBadgesTable).where(eq(userBadgesTable.userId, userId));
+
+      // 5. Reset user stats
+      await tx.update(usersTable).set({
+        xp: 0,
+        level: 1,
+        streak: 0,
+        totalTests: 0,
+        coins: 0,
+        unlockedItems: "[]"
+      }).where(eq(usersTable.id, userId));
+    });
+
+    logger.info({ userId }, "User progress reset successfully");
+    res.json({ message: "Progress wiped successfully" });
+  } catch (err) {
+    logger.error({ err }, "Reset progress error");
+    res.status(500).json({ error: "Could not reset progress" });
   }
 });
 

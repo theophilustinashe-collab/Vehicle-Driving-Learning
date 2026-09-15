@@ -3,11 +3,19 @@ import { db, roadSignsTable } from "@roadify/db";
 import { eq, ilike, and, SQL } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { logger } from "../lib/logger";
+import { z } from "zod";
 
 const router = Router();
 
-// Temporarily removed requireAuth to debug "missing signs" issue
-router.get("/", async (req, res) => {
+const signSchema = z.object({
+  name: z.string().min(1),
+  category: z.string().min(1),
+  meaning: z.string().min(1),
+  imageUrl: z.string().url(),
+  usage: z.string().optional().nullable(),
+});
+
+router.get("/", requireAuth, async (req, res) => {
   try {
     const { category, search } = req.query as Record<string, string>;
     const conditions: SQL[] = [];
@@ -47,12 +55,12 @@ router.get("/", async (req, res) => {
 
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { name, category, meaning, imageUrl, usage } = req.body;
-    if (!name || !category || !meaning || !imageUrl) {
-      res.status(400).json({ error: "Missing required fields" });
+    const validation = signSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ error: "Invalid sign data", details: validation.error.format() });
       return;
     }
-    const [sign] = await db.insert(roadSignsTable).values({ name, category, meaning, imageUrl, usage }).returning();
+    const [sign] = await db.insert(roadSignsTable).values(validation.data).returning();
     res.status(201).json({ ...sign, createdAt: undefined });
   } catch (err) {
     logger.error({ err }, "Create sign error");
@@ -78,16 +86,12 @@ router.get("/:id", requireAuth, async (req, res) => {
 router.patch("/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id as string);
-    const { name, category, meaning, imageUrl, usage } = req.body;
-
-    logger.info({ id, hasImage: !!imageUrl }, "Updating sign");
-
-    const updateData: any = {};
-    if (name !== undefined) updateData.name = name;
-    if (category !== undefined) updateData.category = category;
-    if (meaning !== undefined) updateData.meaning = meaning;
-    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
-    if (usage !== undefined) updateData.usage = usage;
+    const validation = signSchema.partial().safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ error: "Invalid sign data", details: validation.error.format() });
+      return;
+    }
+    const updateData = validation.data;
 
     const [updated] = await db.update(roadSignsTable)
       .set(updateData)
@@ -95,12 +99,10 @@ router.patch("/:id", requireAuth, requireAdmin, async (req, res) => {
       .returning();
 
     if (!updated) {
-      logger.warn({ id }, "Sign not found for update");
       res.status(404).json({ error: "Sign not found" });
       return;
     }
 
-    logger.info({ id }, "Sign updated successfully");
     res.json({ ...updated, createdAt: undefined });
   } catch (err) {
     logger.error({ err, id: req.params.id }, "Update sign error");

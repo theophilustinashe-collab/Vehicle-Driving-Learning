@@ -1,0 +1,1 @@
+import{j as t,i as o}from"./index-YQY75AWo.js";function a({className:e,...r}){return t.jsx("div",{className:o("relative overflow-hidden rounded-xl bg-muted/60","before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",e),...r})}export{a as S};
