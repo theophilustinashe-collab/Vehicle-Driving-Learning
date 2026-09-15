@@ -465,7 +465,7 @@ export function AppLayout({ children, user: initialUser }: { children: React.Rea
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto bg-slate-50 relative flex flex-col h-full">
         {/* Mobile Header / Toggle */}
-        <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between p-4 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm safe-top">
+        <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between p-4 glass-panel shadow-sm safe-top">
           <div className="flex items-center gap-3">
             {!isDashboard && (
               <Button
@@ -529,7 +529,7 @@ export function AppLayout({ children, user: initialUser }: { children: React.Rea
         </div>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="lg:hidden fixed bottom-4 left-4 right-4 bg-white/95 backdrop-blur-3xl border border-slate-200/80 z-40 pb-safe rounded-[2rem] shadow-[0_15px_40px_-5px_rgba(0,0,0,0.2)] overflow-hidden">
+        <nav className="lg:hidden fixed bottom-4 left-4 right-4 liquid-glass z-40 pb-safe rounded-[2rem] shadow-2xl overflow-hidden">
           <div className="flex justify-around items-center h-20 px-1">
             {bottomNavItems.map((item) => {
               const isActive = normalizedPath === item.href || (item.href !== "/dashboard" && normalizedPath.startsWith(item.href));

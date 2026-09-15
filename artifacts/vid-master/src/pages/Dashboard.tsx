@@ -194,7 +194,7 @@ export default function Dashboard() {
          ========================================================================= */}
       <motion.div
         variants={variants.fadeInUp}
-        className="bg-white dark:bg-slate-900 p-4 md:p-5 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden group"
+        className="glass-card p-4 md:p-5 rounded-[2rem] flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden group"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.03] to-transparent pointer-events-none" />
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-1000" />
@@ -280,7 +280,7 @@ export default function Dashboard() {
           { icon: Coins, label: "Wallet", val: user?.coins?.toLocaleString() || 0, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-500/10", glow: "hover:ring-emerald-400/40", shadow: "shadow-emerald-500/5" }
         ].map((stat, i) => (
           <motion.div key={i} variants={variants.listItem} whileHover="hover" initial="rest">
-            <Card className={cn("border-0 shadow-sm ring-1 ring-slate-100 dark:ring-slate-800 rounded-2xl bg-white dark:bg-slate-900 overflow-hidden transition-all duration-300", stat.glow, stat.shadow)}>
+            <Card className={cn("border-0 neo-box rounded-2xl overflow-hidden transition-all duration-300", stat.glow, stat.shadow)}>
               <CardContent className="p-4 md:p-5">
                 <div className="flex justify-between items-center mb-3">
                   <motion.div
@@ -306,7 +306,7 @@ export default function Dashboard() {
           {/* Readiness Target & Exam Mastery Roadmap Card */}
           <motion.div variants={variants.fadeInUp}>
             <Link href="/exam-guide">
-              <Card className="border-0 shadow-xl bg-slate-900 text-white rounded-[2.5rem] overflow-hidden relative group cursor-pointer active:scale-[0.98] transition-all">
+              <Card className="border-0 shadow-2xl liquid-glass text-white rounded-[2.5rem] overflow-hidden relative group cursor-pointer active:scale-[0.98] transition-all">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-primary opacity-90" />
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none" />
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
@@ -444,7 +444,7 @@ export default function Dashboard() {
         <div className="lg:col-span-4 space-y-6">
           {/* Garage Feature Card */}
           <motion.div variants={variants.fadeInUp}>
-            <Card className="border-0 shadow-2xl bg-[#020617] text-white rounded-[2rem] overflow-hidden relative group cursor-pointer active:scale-95 transition-all">
+            <Card className="border-0 shadow-2xl liquid-glass text-white rounded-[2rem] overflow-hidden relative group cursor-pointer active:scale-95 transition-all">
                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none" />
                <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-[60px] group-hover:bg-primary/30 transition-colors" />
 
