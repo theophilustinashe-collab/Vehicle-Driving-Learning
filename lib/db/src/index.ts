@@ -4,18 +4,21 @@ import * as schema from "./schema/index";
 
 const { Pool } = pg;
 
-// Mock DATABASE_URL if it's not provided to allow server to start for UI preview
+// Connection string from environment variable (Neon PostgreSQL or local instance)
 const connectionString = process.env.DATABASE_URL || "postgres://localhost:5432/mock_db";
+
+const isNeon = connectionString.includes('neon.tech') || connectionString.includes('sslmode=require');
+const isProd = process.env.NODE_ENV === 'production';
 
 export const pool = new Pool({
   connectionString,
-  ssl: connectionString.includes('neon.tech') ? { rejectUnauthorized: false } : false,
-  connectionTimeoutMillis: 20000, // Increased to 20 seconds to connect
-  query_timeout: 45000, // Increased to 45 seconds for query
+  ssl: (isNeon || isProd) ? { rejectUnauthorized: false } : false,
+  connectionTimeoutMillis: 20000, // 20 seconds connection timeout
+  query_timeout: 45000, // 45 seconds query timeout
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
+  console.error('Unexpected error on idle PostgreSQL client', err);
 });
 
 export const db = drizzle(pool, { schema });
