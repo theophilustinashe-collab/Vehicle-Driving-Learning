@@ -11,6 +11,7 @@ COPY . .
 # Use pnpm 9.15.0 to match your local environment
 RUN corepack prepare pnpm@9.15.0 --activate
 RUN pnpm install --no-frozen-lockfile
+RUN pnpm --filter @roadify/vid-master build
 RUN pnpm --filter @roadify/api-server... build
 
 # --- Production Stage ---
@@ -23,6 +24,7 @@ COPY --from=build /app/pnpm-workspace.yaml .
 COPY --from=build /app/pnpm-lock.yaml .
 COPY --from=build /app/artifacts/api-server/package.json ./artifacts/api-server/
 COPY --from=build /app/artifacts/api-server/dist ./artifacts/api-server/dist
+COPY --from=build /app/artifacts/vid-master/dist ./artifacts/vid-master/dist
 # Copy libs (sources are needed because they are linked)
 COPY --from=build /app/lib ./lib
 

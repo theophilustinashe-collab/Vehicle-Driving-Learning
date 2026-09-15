@@ -3,6 +3,8 @@ import cors from "cors";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
 import { rateLimit } from "express-rate-limit";
+import path from "path";
+import fs from "fs";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -78,6 +80,25 @@ app.use((req, _res, next) => {
 });
 
 app.use("/api", router);
+
+// Serve static web client if available (Unified Web UI + API Server)
+const publicPaths = [
+  path.resolve(process.cwd(), "artifacts/vid-master/dist/public"),
+  path.resolve(process.cwd(), "../vid-master/dist/public"),
+  path.resolve(import.meta.dirname, "../../vid-master/dist/public"),
+  path.resolve(process.cwd(), "dist/public")
+];
+
+const staticDir = publicPaths.find(p => fs.existsSync(p));
+
+if (staticDir) {
+  logger.info({ staticDir }, "Serving static web client");
+  app.use(express.static(staticDir));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/")) return next();
+    res.sendFile(path.join(staticDir, "index.html"));
+  });
+}
 
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
