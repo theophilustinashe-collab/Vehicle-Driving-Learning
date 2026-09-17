@@ -16,15 +16,20 @@ app.use(helmet());
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  limit: 200, // Limit each IP to 200 requests per 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { error: "Too many requests, please try again later." },
 });
 
 app.use("/api/", limiter);
 
 app.get("/ping", (_req, res) => res.send("pong"));
+
+// Health Check Endpoint (Required for Render & Mobile App Handshake)
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
 
 app.use(
   pinoHttp({
@@ -49,20 +54,23 @@ app.use(
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
-  "https://roadify-app.vercel.app",
-  // Add other production origins here
+  "https://vehicle-driving-learning-4.onrender.com",
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps)
+    // Allow requests with no origin (like native mobile apps)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin) || origin.startsWith("http://192.168.")) {
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.startsWith("http://192.168.") ||
+      origin.endsWith(".onrender.com") ||
+      origin.includes("localhost")
+    ) {
       callback(null, true);
     } else {
-      logger.warn({ origin }, "CORS blocked origin");
-      callback(new Error("Not allowed by CORS"));
+      callback(null, true); // Permissive for mobile webview clients
     }
   },
   credentials: true,
@@ -94,7 +102,9 @@ const staticDir = publicPaths.find(p => fs.existsSync(p));
 if (staticDir) {
   logger.info({ staticDir }, "Serving static web client");
   app.use(express.static(staticDir));
-  app.get("*", (req, res, next) => {
+
+  // Express 5 / path-to-regexp v8 wildcard syntax
+  app.get("{*path}", (req, res, next) => {
     if (req.path.startsWith("/api/")) return next();
     res.sendFile(path.join(staticDir, "index.html"));
   });

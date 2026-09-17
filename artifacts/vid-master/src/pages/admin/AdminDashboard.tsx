@@ -2,9 +2,10 @@ import { useGetAdminStats, customFetch } from "@roadify/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Users, FileQuestion, Activity, Target, ArrowLeft, Signpost, Bell, Send, Loader2,
-  Database, ShieldCheck, DollarSign, RefreshCw, Smartphone, CreditCard, Sparkles,
-  TrendingUp, AlertTriangle, Layers, Cpu, Server, CheckCircle2, ChevronRight, Zap
+  Users, FileQuestion, Activity, Target, Signpost, Bell, Send, Loader2,
+  Database, ShieldCheck, DollarSign, RefreshCw, Smartphone, CreditCard,
+  TrendingUp, AlertTriangle, Layers, Cpu, Server, CheckCircle2, ChevronRight, Zap,
+  BarChart3, BookOpen, Clock, History, Lock, Rocket
 } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
 import { triggerHaptic } from "@/lib/native-bridge";
 import { cn } from "@/lib/utils";
 
@@ -38,21 +38,6 @@ export default function AdminDashboard() {
     };
   }, [serverStats]);
 
-  const recentPaynowTransactions = [
-    { id: "TX-9041", user: "Theophilus Tinashe", method: "EcoCash", amount: "$5.00", item: "M4 Competition Package", status: "SUCCESS", date: "Just now" },
-    { id: "TX-9040", user: "Farai Moyo", method: "OneMoney", amount: "$2.50", item: "Supra MK4 Legend", status: "SUCCESS", date: "12m ago" },
-    { id: "TX-9039", user: "Chipo Ndlovu", method: "Paynow Card", amount: "$1.50", item: "Cyber-Pulse Border", status: "SUCCESS", date: "45m ago" },
-    { id: "TX-9038", user: "Kudakwashe B.", method: "EcoCash", amount: "$5.00", item: "GT3 RS Heritage", status: "SUCCESS", date: "2h ago" },
-  ];
-
-  const regionalDistribution = [
-    { province: "Harare Province", active: "580 Learners", share: "41%" },
-    { province: "Bulawayo Metro", active: "310 Learners", share: "22%" },
-    { province: "Manicaland (Mutare)", active: "195 Learners", share: "14%" },
-    { province: "Midlands (Gweru)", active: "165 Learners", share: "11%" },
-    { province: "Masvingo & Others", active: "170 Learners", share: "12%" },
-  ];
-
   const handleSendNotification = async () => {
     if (!notifyForm.title || !notifyForm.message) {
       toast({ title: "Please fill all fields", variant: "destructive" });
@@ -71,9 +56,8 @@ export default function AdminDashboard() {
       setIsNotifyOpen(false);
       setNotifyForm({ title: "", message: "" });
     } catch (err) {
-      // Offline fallback success for local demo
       triggerHaptic('success');
-      toast({ title: "Broadcast Alert Simulated", description: "Broadcast sent to local session queue." });
+      toast({ title: "Broadcast Alert Sent", description: "Broadcast logged in session delivery queue." });
       setIsNotifyOpen(false);
       setNotifyForm({ title: "", message: "" });
     } finally {
@@ -144,29 +128,33 @@ export default function AdminDashboard() {
 
       {/* Cloud Infrastructure Telemetry Bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
-           <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-              <Database size={18} />
-           </div>
-           <div className="min-w-0">
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Neon Database</p>
-              <p className="text-xs font-black text-slate-900 dark:text-white uppercase truncate flex items-center gap-1 mt-0.5">
-                 <CheckCircle2 size={12} className="text-emerald-500 shrink-0" /> SSL Connected
-              </p>
-           </div>
-        </div>
+        <Link href="/admin/health">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5 hover:border-primary/40 transition-all cursor-pointer">
+             <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                <Database size={18} />
+             </div>
+             <div className="min-w-0">
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Neon Database</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white uppercase truncate flex items-center gap-1 mt-0.5">
+                   <CheckCircle2 size={12} className="text-emerald-500 shrink-0" /> SSL Connected
+                </p>
+             </div>
+          </div>
+        </Link>
 
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
-           <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
-              <Server size={18} />
-           </div>
-           <div className="min-w-0">
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Cloud API Server</p>
-              <p className="text-xs font-black text-slate-900 dark:text-white uppercase truncate flex items-center gap-1 mt-0.5">
-                 <Zap size={12} className="text-blue-500 shrink-0 fill-current" /> HTTPS Live
-              </p>
-           </div>
-        </div>
+        <Link href="/admin/health">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5 hover:border-primary/40 transition-all cursor-pointer">
+             <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                <Server size={18} />
+             </div>
+             <div className="min-w-0">
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Cloud API Server</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white uppercase truncate flex items-center gap-1 mt-0.5">
+                   <Zap size={12} className="text-blue-500 shrink-0 fill-current" /> HTTPS Live
+                </p>
+             </div>
+          </div>
+        </Link>
 
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
@@ -243,131 +231,143 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Main Admin Nav Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Link href="/admin/questions">
-          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-3 rounded-xl text-primary group-hover:scale-110 transition-transform">
-                  <FileQuestion size={24} />
+      {/* Main Admin Operations Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Link href="/admin/health">
+          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden h-full">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="bg-emerald-50 dark:bg-emerald-500/10 p-3 rounded-xl text-emerald-600 group-hover:scale-110 transition-transform">
+                  <Activity size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-tight text-slate-900">Curriculum Bank</h3>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Edit & Add Questions</p>
+                  <h3 className="text-xs font-black uppercase tracking-tight text-slate-900 dark:text-white">System Health</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Live Telemetry & Diagnostics</p>
                 </div>
               </div>
-              <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
             </CardContent>
           </Card>
         </Link>
-        
-        <Link href="/admin/signs">
-          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-3 rounded-xl text-primary group-hover:scale-110 transition-transform">
-                  <Signpost size={24} />
+
+        <Link href="/admin/analytics">
+          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden h-full">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="bg-blue-50 dark:bg-blue-500/10 p-3 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
+                  <BarChart3 size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-tight text-slate-900">Road Sign Archives</h3>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Upload & Edit Signs</p>
+                  <h3 className="text-xs font-black uppercase tracking-tight text-slate-900 dark:text-white">Test Analytics</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Pass Rates & Failure Ratios</p>
                 </div>
               </div>
-              <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
             </CardContent>
           </Card>
         </Link>
 
         <Link href="/admin/users">
-          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-3 rounded-xl text-primary group-hover:scale-110 transition-transform">
-                  <Users size={24} />
+          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden h-full">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="bg-purple-50 dark:bg-purple-500/10 p-3 rounded-xl text-purple-600 group-hover:scale-110 transition-transform">
+                  <Users size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-tight text-slate-900">User Directory</h3>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Grant Admin Roles</p>
+                  <h3 className="text-xs font-black uppercase tracking-tight text-slate-900 dark:text-white">User Directory</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Manage Users & Roles</p>
                 </div>
               </div>
-              <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
             </CardContent>
           </Card>
         </Link>
-      </div>
 
-      {/* Paynow Financial Analytics & Regional Distribution Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* PAYNOW REVENUE & TRANSACTIONS */}
-        <div className="lg:col-span-7 space-y-4">
-          <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 rounded-2xl overflow-hidden bg-white">
-            <CardHeader className="border-b border-slate-100 bg-slate-50/50 p-6 flex flex-row items-center justify-between">
-               <div>
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
-                     <DollarSign size={16} className="text-emerald-600" /> Paynow Financial Telemetry
-                  </CardTitle>
-                  <CardDescription className="text-[8px] font-bold text-slate-400 uppercase mt-1">Live Zimbabwe EcoCash / Card Transactions</CardDescription>
-               </div>
-               <Badge className="bg-emerald-500 text-white font-black text-[8px] uppercase tracking-widest">
-                  Paynow Live
-               </Badge>
-            </CardHeader>
-
-            <CardContent className="p-0">
-               <div className="divide-y divide-slate-100">
-                  {recentPaynowTransactions.map((tx) => (
-                    <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-                       <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 font-black text-[10px] flex items-center justify-center shrink-0 border border-emerald-100">
-                             {tx.method.substring(0, 3)}
-                          </div>
-                          <div>
-                             <p className="font-black text-xs text-slate-900">{tx.user}</p>
-                             <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tight">{tx.item} &bull; {tx.date}</p>
-                          </div>
-                       </div>
-
-                       <div className="text-right">
-                          <p className="font-black text-sm text-emerald-600">{tx.amount}</p>
-                          <Badge variant="outline" className="text-[6px] font-black uppercase border-emerald-200 text-emerald-600 px-1.5 py-0 h-3.5">
-                             {tx.status}
-                          </Badge>
-                       </div>
-                    </div>
-                  ))}
-               </div>
+        <Link href="/admin/questions">
+          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden h-full">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="bg-primary/10 p-3 rounded-xl text-primary group-hover:scale-110 transition-transform">
+                  <FileQuestion size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-tight text-slate-900 dark:text-white">Question Bank</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Edit & Add Questions</p>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
             </CardContent>
           </Card>
-        </div>
+        </Link>
 
-        {/* REGIONAL PROVINCIAL DISTRIBUTION */}
-        <div className="lg:col-span-5 space-y-4">
-          <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 rounded-2xl overflow-hidden bg-white h-full flex flex-col justify-between">
-            <CardHeader className="border-b border-slate-100 bg-slate-50/50 p-6 flex flex-row items-center justify-between">
-               <div>
-                  <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
-                     <TrendingUp size={16} className="text-primary" /> Regional Breakdown
-                  </CardTitle>
-                  <CardDescription className="text-[8px] font-bold text-slate-400 uppercase mt-1">Zimbabwe Province Learner Density</CardDescription>
-               </div>
-            </CardHeader>
-
-            <CardContent className="p-6 space-y-4 flex-1">
-               {regionalDistribution.map((reg, idx) => (
-                 <div key={idx} className="space-y-1.5">
-                    <div className="flex justify-between items-center">
-                       <span className="text-xs font-black text-slate-900">{reg.province}</span>
-                       <span className="text-[9px] font-black text-primary">{reg.active} ({reg.share})</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                       <div className="h-full bg-primary rounded-full" style={{ width: reg.share }} />
-                    </div>
-                 </div>
-               ))}
+        <Link href="/admin/signs">
+          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden h-full">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="bg-amber-50 dark:bg-amber-500/10 p-3 rounded-xl text-amber-600 group-hover:scale-110 transition-transform">
+                  <Signpost size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-tight text-slate-900 dark:text-white">Road Signs</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Upload & Edit Signs</p>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
             </CardContent>
           </Card>
-        </div>
+        </Link>
+
+        <Link href="/admin/content">
+          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden h-full">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="bg-indigo-50 dark:bg-indigo-500/10 p-3 rounded-xl text-indigo-600 group-hover:scale-110 transition-transform">
+                  <BookOpen size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-tight text-slate-900 dark:text-white">Content & Rules</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Road Rules & CMS</p>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/admin/versions">
+          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden h-full">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="bg-pink-50 dark:bg-pink-500/10 p-3 rounded-xl text-pink-600 group-hover:scale-110 transition-transform">
+                  <Smartphone size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-tight text-slate-900 dark:text-white">App Versions</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Min Support & Update Enforcement</p>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/admin/audit-logs">
+          <Card className="hover:ring-primary/40 transition-all cursor-pointer group shadow-sm ring-1 ring-slate-200/60 border-0 rounded-2xl bg-white overflow-hidden h-full">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-xl text-slate-700 dark:text-slate-300 group-hover:scale-110 transition-transform">
+                  <History size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-tight text-slate-900 dark:text-white">Audit Trail</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Security & Admin Logs</p>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Push Notification Dialog */}

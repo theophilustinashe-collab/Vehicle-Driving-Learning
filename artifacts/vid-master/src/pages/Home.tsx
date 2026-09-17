@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Signpost, Car, ShieldCheck, Mail, Lock, User, ArrowRight, Trophy, MapPin, Loader2, Eye, EyeOff, Sparkles, CheckCircle2, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { setSecureToken } from "@/lib/auth-bridge";
+import { triggerHaptic } from "@/lib/native-bridge";
 import { getCachedUser } from "@/lib/offline";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemo } from "react";
@@ -161,7 +162,7 @@ export default function Home() {
   // We only render the login terminal if App thinks we should be here.
 
   return (
-    <div className="h-screen w-full bg-[#020617] flex flex-col md:flex-row overflow-hidden relative font-sans">
+    <div className="min-h-screen w-full bg-[#020617] flex flex-col md:flex-row relative font-sans">
       {/* Dynamic Background Atmosphere */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -253,7 +254,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-4 md:p-12 lg:p-24 bg-slate-50 relative z-10 h-full overflow-hidden">
+      <div className="flex-1 flex items-center justify-center p-3 md:p-12 lg:p-24 bg-slate-50 relative z-10 min-h-screen">
          {/* Background pattern for right side */}
          <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/circuit-board.png')]" />
 

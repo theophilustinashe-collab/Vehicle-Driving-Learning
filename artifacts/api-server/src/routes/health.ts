@@ -3,9 +3,13 @@ import { HealthCheckResponse } from "@roadify/api-zod";
 
 const router: IRouter = Router();
 
-router.get(["/", "/health", "/healthz"], (_req, res) => {
+const sendHealth = (_req: any, res: any) => {
   const data = HealthCheckResponse.parse({ status: "ok" });
   res.json(data);
-});
+};
+
+router.get("/", sendHealth);
+router.get("/health", sendHealth);
+router.get("/healthz", sendHealth);
 
 export default router;

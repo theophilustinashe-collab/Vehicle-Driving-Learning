@@ -307,7 +307,45 @@ export default function TestPage() {
         queryClient.setQueryData(getGetTestResultQueryKey(session.sessionId), data);
         setLocation(`/test/${session.sessionId}/results`);
       },
-      onError: () => setIsFinishing(false)
+      onError: (err) => {
+        console.warn("[Roadify] Submit online failed, falling back to local evaluation:", err);
+        let score = 0;
+        const offlineAnswers = session.questions.map(q => {
+          const selected = answers[q.id];
+          const isCorrect = selected === q.correctAnswer;
+          if (isCorrect) score++;
+          return {
+            questionId: q.id,
+            text: q.text,
+            selectedAnswer: selected ?? -1,
+            correctAnswer: q.correctAnswer,
+            isCorrect,
+            explanation: q.explanation
+          };
+        });
+
+        const resultData = {
+          sessionId: session.sessionId,
+          score,
+          total: session.questions.length,
+          percentage: Math.round((score / session.questions.length) * 100),
+          passed: score >= (session.questions.length * 0.88),
+          completedAt: new Date().toISOString(),
+          mode: session.mode,
+          answers: offlineAnswers
+        };
+
+        // Queue result locally for background sync
+        queueTestResult(session.sessionId, score, session.questions.length, offlineAnswers);
+
+        // Hydrate cache so Results page works immediately
+        queryClient.setQueryData(getGetTestResultQueryKey(session.sessionId), resultData);
+
+        setTimeout(() => {
+          setSession(null);
+          setLocation(`/test/${session.sessionId}/results`);
+        }, 300);
+      }
     });
   };
 

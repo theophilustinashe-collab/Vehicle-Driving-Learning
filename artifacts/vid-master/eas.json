@@ -12,7 +12,6 @@
       },
       "env": {
         "EAS_NO_FROZEN_LOCKFILE": "1",
-        "EXPO_PUBLIC_WEB_URL": "https://roadify-app.vercel.app",
         "EXPO_PUBLIC_API_URL": "https://vehicle-driving-learning-4.onrender.com"
       },
       "channel": "preview"
@@ -20,7 +19,6 @@
     "production": {
       "channel": "production",
       "env": {
-        "EXPO_PUBLIC_WEB_URL": "https://roadify-app.vercel.app",
         "EXPO_PUBLIC_API_URL": "https://vehicle-driving-learning-4.onrender.com"
       }
     }

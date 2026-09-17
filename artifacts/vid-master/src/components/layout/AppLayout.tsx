@@ -14,6 +14,7 @@ import {
   Settings,
   LogOut,
   ShieldAlert,
+  Activity,
   Menu,
   X,
   ArrowLeft,
@@ -23,7 +24,8 @@ import {
   Sun,
   Moon,
   AlertTriangle,
-  ClipboardList
+  ClipboardList,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +33,7 @@ import { useTheme } from "next-themes";
 import React, { useState, useEffect, useMemo } from "react";
 import { variants, transitions } from "@/lib/motion";
 import { syncOfflineData, getLastSyncDate, getCachedUser, setCachedUser, clearAllCache, getOfflineQuestions } from "@/lib/offline";
-import { setSecureToken } from "@/lib/auth-bridge";
+import { setSecureToken, getSecureToken } from "@/lib/auth-bridge";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 
@@ -171,9 +173,14 @@ export function AppLayout({ children, user: initialUser }: { children: React.Rea
 
   const adminItems = [
     { label: "Admin Overview", href: "/admin", icon: ShieldAlert },
-    { label: "Manage Questions", href: "/admin/questions", icon: BookOpen },
+    { label: "System Health", href: "/admin/health", icon: Activity },
+    { label: "Test Analytics", href: "/admin/analytics", icon: BarChart },
+    { label: "User Directory", href: "/admin/users", icon: Settings },
+    { label: "Question Bank", href: "/admin/questions", icon: BookOpen },
     { label: "Road Signs", href: "/admin/signs", icon: Octagon },
-    { label: "Manage Users", href: "/admin/users", icon: Settings },
+    { label: "Content & Rules", href: "/admin/content", icon: ClipboardList },
+    { label: "App Versions", href: "/admin/versions", icon: RefreshCw },
+    { label: "Audit Trail", href: "/admin/audit-logs", icon: HistoryIcon },
   ];
 
   const normalizedPath = location.split('?')[0].replace(/\/$/, "") || "/";

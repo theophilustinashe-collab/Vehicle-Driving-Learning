@@ -7,8 +7,7 @@
     "icon": "./src/assets/logo.png",
     "userInterfaceStyle": "light",
     "updates": {
-      "enabled": false,
-      "url": "https://u.expo.dev/39675c10-618b-486d-b8e6-bb801d095cfe"
+      "enabled": false
     },
     "assetBundlePatterns": [
       "**/*"
@@ -50,9 +49,11 @@
     },
     "runtimeVersion": "1.0.1",
     "extra": {
+      "EXPO_PUBLIC_API_URL": "https://vehicle-driving-learning-4.onrender.com",
       "eas": {
-        "projectId": "39675c10-618b-486d-b8e6-bb801d095cfe"
+        "projectId": "fd05237d-e159-4153-a3cb-3a9f84d78fb8"
       }
-    }
+    },
+    "owner": "yrtdddd4"
   }
 }

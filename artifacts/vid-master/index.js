@@ -9,32 +9,92 @@ import * as SecureStore from 'expo-secure-store';
 import * as Haptics from 'expo-haptics';
 import * as Speech from 'expo-speech';
 
-// Shared Production & Cloud Configuration
-const PROD_WEB_URL = process.env.EXPO_PUBLIC_WEB_URL || 'https://roadify-app.vercel.app';
+// Production Render API Configuration (Pure Cloud - No Vercel / No Supabase)
+const PROD_API_URL = process.env.EXPO_PUBLIC_API_URL ||
+                      Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL ||
+                      'https://vehicle-driving-learning-4.onrender.com';
 const WEB_PORT = 3001;
+
+// Embedded HTML Shell with Deterministic Entry Points (Prevents Stale Hash ERR_FILE_NOT_FOUND)
+const BUNDLED_HTML = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Roadify Zimbabwe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="./assets/app.js"></script>
+    <link rel="stylesheet" href="./assets/app.css">
+  </head>
+  <body style="background-color: #020617; margin: 0; padding: 0;">
+    <div id="root"></div>
+  </body>
+</html>`;
+
+const LOCAL_ASSET_URL = 'file:///android_asset/public/index.html';
 
 function AppContent() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const hasBootedRef = useRef(false);
   const [key, setKey] = useState(0);
   const webViewRef = useRef(null);
   const [canGoBack, setCanGoBack] = useState(false);
   const colorScheme = useColorScheme();
 
-  // Detect server URL: prioritize EXPO_PUBLIC_WEB_URL, then Expo Go debugger host, then Cloud Production URL
   const expoIp = Constants.expoConfig?.hostUri?.split(':')[0] ||
                  Constants.manifest2?.extra?.expoGo?.debuggerHost?.split(':')[0] ||
                  Constants.manifest?.debuggerHost?.split(':')[0];
 
-  const envWebUrl = process.env.EXPO_PUBLIC_WEB_URL;
-
-  // In development, connect to dev server; in production standalone APKs, load hosted production web app
-  const initialServerUrl = envWebUrl ||
-    (__DEV__ && expoIp && expoIp !== 'localhost' && expoIp !== '127.0.0.1'
-      ? `http://${expoIp}:${WEB_PORT}`
-      : PROD_WEB_URL);
+  // Target local asset bundle for APK, or local dev server in Expo Go
+  const initialServerUrl = (__DEV__ && expoIp && expoIp !== 'localhost' && expoIp !== '127.0.0.1')
+    ? `http://${expoIp}:${WEB_PORT}`
+    : LOCAL_ASSET_URL;
 
   const [currentUrl, setCurrentUrl] = useState(initialServerUrl);
+
+  // Determine Source: Use inline HTML string with fixed asset filenames for local assets
+  const webViewSource = (currentUrl && currentUrl.startsWith('file://'))
+    ? { html: BUNDLED_HTML, baseUrl: 'file:///android_asset/public/' }
+    : { uri: currentUrl };
+
+  // Safety Timer: Guarantee loading overlay clears after 1.5s max
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      hasBootedRef.current = true;
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [key]);
+
+  const handleLoadStart = () => {
+    if (!hasBootedRef.current) {
+      setIsLoading(true);
+    }
+  };
+
+  const handleLoadEnd = () => {
+    hasBootedRef.current = true;
+    setIsLoading(false);
+  };
+
+  // Health Handshake with Render Backend API
+  useEffect(() => {
+    let isMounted = true;
+    fetch(`${PROD_API_URL}/api/health`)
+      .then(res => res.json())
+      .then(data => {
+        if (isMounted) {
+          console.log("[Roadify Native] Render API Health Verified:", data);
+        }
+      })
+      .catch(err => {
+        console.warn("[Roadify Native] Render API Health warning:", err);
+      });
+    return () => { isMounted = false; };
+  }, []);
 
   // Sync theme with Web
   useEffect(() => {
@@ -171,15 +231,15 @@ function AppContent() {
   };
 
   const handleWebError = (e) => {
-    console.warn("WebView error:", e.nativeEvent?.description);
-    if (Platform.OS === 'android' && currentUrl !== LOCAL_ASSET_URL) {
-      // Automatic fallback to locally bundled offline assets on Android
-      setCurrentUrl(LOCAL_ASSET_URL);
-      setKey(k => k + 1);
-    } else {
-      setError(e.nativeEvent?.description || 'Failed to load page');
-      setIsLoading(false);
-    }
+    const nativeEvt = e.nativeEvent || {};
+    const code = nativeEvt.code ?? -1;
+    const desc = nativeEvt.description || 'WebView Load Error';
+    const failingUrl = nativeEvt.url || currentUrl || 'undefined';
+    const domain = nativeEvt.domain || (failingUrl.includes('://') ? failingUrl.split('://')[1].split('/')[0] : 'undefined');
+
+    console.warn(`[Roadify WebView Load Warning] Code: ${code}, Domain: ${domain}, Description: ${desc}, URL: ${failingUrl}`);
+    hasBootedRef.current = true;
+    setIsLoading(false);
   };
 
   return (
@@ -190,7 +250,7 @@ function AppContent() {
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#4f46e5" />
           <Text style={styles.loadingText}>ROADIFY</Text>
-          <Text style={styles.loadingSubtext}>Connecting to Learning Engine...</Text>
+          <Text style={styles.loadingSubtext}>Connecting to Render Engine...</Text>
           {__DEV__ && <Text style={styles.devUrl}>{currentUrl}</Text>}
         </View>
       )}
@@ -198,10 +258,10 @@ function AppContent() {
       {error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorTitle}>Connection Failed</Text>
-          <Text style={styles.errorText}>The app could not connect to the server.</Text>
+          <Text style={styles.errorText}>Unable to reach the Roadify Render engine.</Text>
           <View style={styles.errorBox}>
-             <Text style={styles.errorLabel}>Target:</Text>
-             <Text style={styles.errorValue}>{currentUrl}</Text>
+             <Text style={styles.errorLabel}>Render Endpoint:</Text>
+             <Text style={styles.errorValue}>{PROD_API_URL}</Text>
           </View>
           <Button title="Retry Handshake" color="#4f46e5" onPress={() => { setError(null); setIsLoading(true); setKey(k => k + 1); }} />
         </View>
@@ -209,16 +269,24 @@ function AppContent() {
         <WebView
           ref={webViewRef}
           key={key}
-          source={{ uri: currentUrl }}
+          source={webViewSource}
           style={styles.webview}
           onMessage={handleMessage}
-          onLoadEnd={() => setIsLoading(false)}
+          onLoadStart={handleLoadStart}
+          onLoadEnd={handleLoadEnd}
           onError={handleWebError}
-          onHttpError={(e) => {
-            if (e.nativeEvent?.statusCode >= 400) {
-              handleWebError(e);
-            }
-          }}
+          onHttpError={handleWebError}
+          renderError={() => (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorTitle}>Roadify Master</Text>
+              <Text style={styles.errorText}>Initializing Highway Code Engine...</Text>
+              <View style={styles.errorBox}>
+                 <Text style={styles.errorLabel}>Render API Target:</Text>
+                 <Text style={styles.errorValue}>{PROD_API_URL}</Text>
+              </View>
+              <Button title="Reload Application" color="#4f46e5" onPress={() => setKey(k => k + 1)} />
+            </View>
+          )}
           onNavigationStateChange={(navState) => {
             setCanGoBack(navState.canGoBack);
           }}
@@ -233,6 +301,7 @@ function AppContent() {
           allowFileAccess={true}
           allowFileAccessFromFileURLs={true}
           allowUniversalAccessFromFileURLs={true}
+          allowingReadAccessToURL="file:///android_asset/public/"
         />
       )}
     </SafeAreaView>

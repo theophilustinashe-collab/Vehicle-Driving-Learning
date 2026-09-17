@@ -23,6 +23,7 @@ def runNodeCommand = { List<String> args ->
 react {
     root = file("../../").absoluteFile
     entryFile = file("../../index.js").absoluteFile
+    debuggableVariants = []
     def reactNativePath = new File(runNodeCommand(["--print", "require.resolve('react-native/package.json')"])).getParentFile().absolutePath
     reactNativeDir = file(reactNativePath)
     codegenDir = file(new File(runNodeCommand(["--print", "require.resolve('@react-native/codegen/package.json')"])).getParentFile().absolutePath)

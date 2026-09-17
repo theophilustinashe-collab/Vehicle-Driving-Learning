@@ -6,11 +6,26 @@ import path from "path";
 const port = 3001;
 const basePath = "./";
 
+// Custom plugin to convert <script type="module"> to <script defer> and remove crossorigin for 100% Android WebView file:// compatibility
+function removeCrossoriginPlugin() {
+  return {
+    name: "remove-crossorigin",
+    transformIndexHtml(html: string) {
+      return html
+        .replace(/ type="module"/g, " defer")
+        .replace(/ crossorigin/g, "")
+        .replace(/crossorigin=""/g, "")
+        .replace(/crossorigin/g, "");
+    },
+  };
+}
+
 export default defineConfig({
   base: basePath,
   plugins: [
     react(),
     tailwindcss(),
+    removeCrossoriginPlugin(),
   ],
   resolve: {
     alias: {
@@ -23,6 +38,15 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    modulePreload: false,
+    target: "es2015",
+    rollupOptions: {
+      output: {
+        entryFileNames: "assets/app.js",
+        chunkFileNames: "assets/[name].js",
+        assetFileNames: "assets/app.[ext]",
+      },
+    },
   },
   server: {
     port,

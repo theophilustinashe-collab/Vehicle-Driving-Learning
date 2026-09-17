@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Bookmark, BookmarkCheck, ChevronDown, CheckCircle2, ArrowLeft, Info, WifiOff, Sparkles, Trophy as TrophyIcon, Share2, Volume2, VolumeX, RefreshCw } from "lucide-react";
+import { Bookmark, BookmarkCheck, ChevronDown, CheckCircle2, ArrowLeft, Info, WifiOff, Sparkles, Trophy as TrophyIcon, Share2, Volume2, VolumeX, RefreshCw, Loader2 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useSearch } from "wouter";

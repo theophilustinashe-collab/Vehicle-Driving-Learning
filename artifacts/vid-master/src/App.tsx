@@ -1,7 +1,9 @@
 import { useLocation, Switch, Route, Router as WouterRouter } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeProvider, useTheme } from "next-themes";
 import { setAuthTokenGetter, setBaseUrl, useGetMe } from "@roadify/api-client-react";
 import { getApiUrl } from "@/lib/config";
@@ -12,7 +14,7 @@ import { onNativeThemeChange } from "@/lib/native-bridge";
 import { variants, transitions } from "@/lib/motion";
 import { getSecureToken, setSecureToken } from "@/lib/auth-bridge";
 import { getCachedUser, clearAllCache, setCachedUser } from "@/lib/offline";
-import { Loader2, Zap, WifiOff, Sparkles } from "lucide-react";
+import { Loader2, Zap, WifiOff, Sparkles, RefreshCw } from "lucide-react";
 
 // Eager imports for main entry routes to prevent startup chunk load failures
 import Home from "@/pages/Home";
@@ -34,6 +36,11 @@ const SettingsPage = lazy(() => import("@/pages/Settings"));
 const SupportPage = lazy(() => import("@/pages/Support"));
 const AboutCrownweb = lazy(() => import("@/pages/AboutCrownweb"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
+const ResultsAnalytics = lazy(() => import("@/pages/admin/ResultsAnalytics"));
+const ContentManagement = lazy(() => import("@/pages/admin/ContentManagement"));
+const AppVersionManager = lazy(() => import("@/pages/admin/AppVersionManager"));
+const AuditLogs = lazy(() => import("@/pages/admin/AuditLogs"));
 const ManageQuestions = lazy(() => import("@/pages/admin/ManageQuestions"));
 const ManageSigns = lazy(() => import("@/pages/admin/ManageSigns"));
 const ManageUsers = lazy(() => import("@/pages/admin/ManageUsers"));
@@ -63,19 +70,20 @@ const queryClient = new QueryClient({
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { hasError: boolean; error: Error | null }
+  { hasError: boolean; error: Error | null; errorId?: string }
 > {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorId: undefined };
   }
 
   static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
+    const errorId = `ERR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    return { hasError: true, error, errorId };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("[Roadify Runtime Error]:", error, errorInfo);
+    console.error(`[Roadify Diagnostic ${this.state.errorId || 'ERR-BOOT'}]:`, error, errorInfo);
   }
 
   render() {
@@ -86,20 +94,22 @@ class ErrorBoundary extends React.Component<
             <WifiOff size={32} />
           </div>
           <div className="space-y-2 max-w-sm">
-            <h2 className="text-2xl font-black uppercase tracking-tight">Study Space Recovery</h2>
+            <h2 className="text-2xl font-black uppercase tracking-tight">Roadify Diagnostic Error</h2>
             <p className="text-slate-400 text-xs font-medium leading-relaxed">
-              A temporary display error occurred. Tap below to reload your study space.
+              Startup initialization paused. Diagnostic Ref: <code className="text-primary font-mono font-bold">{this.state.errorId || 'ERR-001'}</code>
             </p>
           </div>
-          <button
-            onClick={() => {
-              localStorage.removeItem('vid_last_location');
-              window.location.reload();
-            }}
-            className="h-12 px-8 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all"
-          >
-            Reload Simulator
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                localStorage.removeItem('vid_last_location');
+                window.location.reload();
+              }}
+              className="h-11 px-6 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center gap-2"
+            >
+              <RefreshCw size={14} /> Retry Startup
+            </button>
+          </div>
         </div>
       );
     }
@@ -110,43 +120,31 @@ class ErrorBoundary extends React.Component<
 
 function ComponentLoader() {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-6">
-      <div className="relative">
-        <motion.div
-          animate={{
-            rotate: 360,
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.6, 0.3]
-          }}
-          transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-          className="w-16 h-16 border-t-2 border-r-2 border-primary rounded-full blur-[1px]"
-        />
-        <motion.div
-          animate={{ rotate: -360 }}
-          transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-          className="absolute inset-2 border-b-2 border-l-2 border-primary/40 rounded-full"
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <motion.div
-            animate={{ opacity: [0, 1, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-          >
-            <Zap size={20} className="text-primary fill-current" />
-          </motion.div>
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full animate-in fade-in duration-300">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="flex items-center gap-5 w-full md:w-auto">
+          <Skeleton className="w-16 h-16 md:w-20 md:h-20 rounded-2xl animate-pulse" />
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-32 rounded-full" />
+            <Skeleton className="h-7 w-48 rounded-lg" />
+          </div>
         </div>
+        <Skeleton className="w-full md:w-80 h-20 rounded-2xl" />
       </div>
-      <div className="flex flex-col items-center gap-1.5">
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Getting things ready</p>
-        <div className="flex gap-1">
-          {[0, 1, 2].map(i => (
-            <motion.div
-              key={i}
-              animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
-              transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15 }}
-              className="w-1 h-1 bg-primary rounded-full"
-            />
-          ))}
-        </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="p-5 space-y-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
+            <Skeleton className="h-8 w-8 rounded-xl" />
+            <Skeleton className="h-5 w-full rounded-md" />
+            <Skeleton className="h-3 w-1/2 rounded-md" />
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <Skeleton className="lg:col-span-8 h-56 rounded-3xl" />
+        <Skeleton className="lg:col-span-4 h-56 rounded-3xl" />
       </div>
     </div>
   );
@@ -199,13 +197,10 @@ function AppContent() {
     return baseUser;
   }, [serverUser, token]);
 
-  // Track if we have performed the initial auth-routing check
-  // Synchronous boot: If no token exists OR cached user exists, initialize IMMEDIATELY on frame 1
   const [isAuthInitialized, setIsAuthInitialized] = useState(() => {
     return !token || !!getCachedUser();
   });
 
-  // Safety Fallback: Max 300ms splash screen for instant, responsive app launch
   useEffect(() => {
     const splashTimer = setTimeout(() => {
       setIsAuthInitialized(true);
@@ -213,7 +208,6 @@ function AppContent() {
     return () => clearTimeout(splashTimer);
   }, []);
 
-  // Handle 401/Invalid Token ONLY for real server tokens
   useEffect(() => {
     if (isError && token && !isGuestToken) {
       console.warn("[Roadify] Token invalid, clearing session...");
@@ -235,24 +229,12 @@ function AppContent() {
   const normalizedPath = location.split('?')[0].replace(/\/$/, "") || "/";
   const isPublicRoute = normalizedPath === "/" || normalizedPath === "/login" || normalizedPath === "/register";
 
-  // Perspective Persistence
-  useEffect(() => {
-    if (!isPublicRoute && user) {
-      localStorage.setItem('vid_last_location', location);
-    }
-  }, [location, isPublicRoute, user]);
-
-  // Global Auth Enforcement & State Restoration
+  // Global Auth Enforcement: Ensure app launches to Home screen
   useEffect(() => {
     if (token && isServerLoading && !user) return;
 
     if (user && isPublicRoute) {
-      const savedLocation = localStorage.getItem('vid_last_location');
-      if (savedLocation && savedLocation !== "/" && !savedLocation.includes('/login')) {
-        setLocation(savedLocation);
-      } else {
-        setLocation("/dashboard");
-      }
+      setLocation("/dashboard");
     } else if (!user && !isPublicRoute) {
       setLocation("/");
     }
@@ -260,11 +242,9 @@ function AppContent() {
     setIsAuthInitialized(true);
   }, [user, isServerLoading, token, isPublicRoute, setLocation]);
 
-  // Captivating Splash Screen: Show ONLY during initial un-initialized boot window
   if (!isAuthInitialized) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-[#020617] overflow-hidden relative">
-        {/* Dynamic Background Elements */}
         <div className="absolute inset-0 z-0">
           <motion.div
             animate={{
@@ -275,18 +255,6 @@ function AppContent() {
             transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
             className="absolute -top-1/2 -left-1/2 w-full h-full bg-primary/30 blur-[140px] rounded-full"
           />
-          <motion.div
-            animate={{
-              scale: [1.3, 1, 1.3],
-              opacity: [0.04, 0.1, 0.04],
-              rotate: [360, 270, 180, 90, 0]
-            }}
-            transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
-            className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-indigo-500/20 blur-[130px] rounded-full"
-          />
-
-          {/* Technical Grid Overlay */}
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] mix-blend-overlay" />
         </div>
 
         <motion.div
@@ -295,78 +263,22 @@ function AppContent() {
           className="flex flex-col items-center gap-10 relative z-10"
         >
           <div className="relative">
-            {/* Spinning Technical Rings */}
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ repeat: Infinity, duration: 12, ease: "linear" }}
               className="absolute -inset-8 border-2 border-white/5 rounded-[5rem] border-t-primary/20"
             />
-            <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
-              className="absolute -inset-12 border border-white/5 rounded-[6rem] border-b-indigo-500/20"
-            />
-
-            <motion.div
-              animate={{
-                scale: [0.95, 1.05, 0.95],
-                boxShadow: [
-                  "0 0 40px hsl(var(--primary) / 0.1)",
-                  "0 0 80px hsl(var(--primary) / 0.3)",
-                  "0 0 40px hsl(var(--primary) / 0.1)"
-                ]
-              }}
-              transition={{ repeat: Infinity, duration: 4 }}
-              className="w-32 h-32 bg-white p-5 rounded-[4rem] shadow-2xl flex items-center justify-center relative overflow-hidden"
-            >
+            <div className="w-32 h-32 bg-white p-5 rounded-[4rem] shadow-2xl flex items-center justify-center relative overflow-hidden">
               <img src={logo} alt="Logo" className="w-full h-full object-cover rounded-[2.5rem] relative z-10" />
-
-              {/* Scanning Shine */}
-              <motion.div
-                animate={{ y: ["-100%", "200%"] }}
-                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                className="absolute inset-x-0 h-1/2 bg-gradient-to-b from-transparent via-primary/20 to-transparent z-20 pointer-events-none"
-              />
-            </motion.div>
+            </div>
           </div>
 
           <div className="text-center space-y-4">
             <div className="space-y-1">
-              <motion.h2
-                animate={{ opacity: [0.8, 1, 0.8] }}
-                transition={{ repeat: Infinity, duration: 2 }}
-                className="text-white font-black text-5xl tracking-[0.4em] uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-              >
+              <h2 className="text-white font-black text-5xl tracking-[0.4em] uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
                 {user ? user.name.split(' ')[0] : "Roadify"}
-              </motion.h2>
+              </h2>
               <p className="text-primary font-black text-[10px] uppercase tracking-[0.6em] ml-1">Learning Assistant</p>
-            </div>
-
-            <div className="h-[2px] w-24 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto rounded-full" />
-          </div>
-
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10">
-               <motion.div
-                 animate={{ opacity: [1, 0.4, 1] }}
-                 transition={{ repeat: Infinity, duration: 1.5 }}
-                 className="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_hsl(var(--primary))]"
-               />
-               <span className="text-white/40 font-black text-[8px] uppercase tracking-[0.3em]">Connecting to your dashboard</span>
-            </div>
-
-            <div className="flex gap-1.5">
-              {[0, 1, 2, 3].map(i => (
-                <motion.div
-                  key={i}
-                  animate={{
-                    scale: [1, 1.4, 1],
-                    backgroundColor: ["hsl(var(--primary) / 0.2)", "hsl(var(--primary) / 1)", "hsl(var(--primary) / 0.2)"]
-                  }}
-                  transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.2 }}
-                  className="w-1 h-1 rounded-full"
-                />
-              ))}
             </div>
           </div>
         </motion.div>
@@ -374,7 +286,6 @@ function AppContent() {
     );
   }
 
-  // 2. Main Render Flow
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
       {isOffline && (
@@ -407,6 +318,11 @@ function AppContent() {
                     <Route path="/support"><PageWrapper><SupportPage /></PageWrapper></Route>
                     <Route path="/about"><PageWrapper><AboutCrownweb /></PageWrapper></Route>
                     <Route path="/admin"><PageWrapper><AdminDashboard /></PageWrapper></Route>
+                    <Route path="/admin/health"><PageWrapper><SystemHealth /></PageWrapper></Route>
+                    <Route path="/admin/analytics"><PageWrapper><ResultsAnalytics /></PageWrapper></Route>
+                    <Route path="/admin/content"><PageWrapper><ContentManagement /></PageWrapper></Route>
+                    <Route path="/admin/versions"><PageWrapper><AppVersionManager /></PageWrapper></Route>
+                    <Route path="/admin/audit-logs"><PageWrapper><AuditLogs /></PageWrapper></Route>
                     <Route path="/admin/questions"><PageWrapper><ManageQuestions /></PageWrapper></Route>
                     <Route path="/admin/signs"><PageWrapper><ManageSigns /></PageWrapper></Route>
                     <Route path="/admin/users"><PageWrapper><ManageUsers /></PageWrapper></Route>
@@ -433,13 +349,12 @@ function AppContent() {
 }
 
 function App() {
-  const baseUrl = (import.meta.env.BASE_URL || "").replace(/\/$/, "");
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <TooltipProvider>
-            <WouterRouter base={baseUrl}>
+            <WouterRouter hook={useHashLocation}>
               <AppContent />
             </WouterRouter>
           </TooltipProvider>

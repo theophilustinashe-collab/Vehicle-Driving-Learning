@@ -1,17 +1,13 @@
 /**
  * Centralized configuration for Roadify
- * Pure Cloud / HTTPS API Architecture with Environment Variable Support
+ * Pure Cloud / HTTPS API Architecture targeting Render + Neon PostgreSQL
  */
 
 export const CONFIG = {
-  // Hosted Production Endpoints (Overridable by ENV)
+  // Production Render API Endpoint
   PROD_API_URL: (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL) ||
                 (import.meta?.env?.VITE_API_URL) ||
                 'https://vehicle-driving-learning-4.onrender.com',
-
-  PROD_WEB_URL: (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_WEB_URL) ||
-                (import.meta?.env?.VITE_WEB_URL) ||
-                'https://roadify-app.vercel.app',
 
   API_PORT: '8080',
   WEB_PORT: '3001',
@@ -37,17 +33,13 @@ export const getApiUrl = (isNative: boolean = false) => {
     return "";
   }
 
-  // Priority 5: Default to Cloud Production HTTPS API for 100% laptop-independent APK
+  // Priority 5: Default to Production Render HTTPS API for 100% laptop-independent APK
   return CONFIG.PROD_API_URL;
 };
 
 export const getWebUrl = () => {
-  const envWebUrl = (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_WEB_URL) ||
-                     (import.meta?.env?.VITE_WEB_URL);
-  if (envWebUrl) return envWebUrl;
-
   if (typeof window !== 'undefined') {
     return window.location.origin;
   }
-  return CONFIG.PROD_WEB_URL;
+  return CONFIG.PROD_API_URL;
 };

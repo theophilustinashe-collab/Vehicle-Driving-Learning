@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { variants, transitions } from "@/lib/motion";
+import { triggerHaptic } from "@/lib/native-bridge";
 
 export default function TestResults() {
   const [match, params] = useRoute("/test/:sessionId/results");

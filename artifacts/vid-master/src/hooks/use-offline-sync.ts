@@ -4,20 +4,19 @@ import { syncOfflineData, getPendingResults, removeSyncedResult } from '@/lib/of
 import { useToast } from './use-toast';
 
 export function useOfflineSync(user: any) {
-  const isEnabled = !!user;
-
+  // Always pre-fetch content for offline use whenever online
   const { data: questions } = useListQuestions({ limit: 1000 }, {
     query: {
-      enabled: isEnabled,
       staleTime: 1000 * 60 * 60, // 1 hour stale time for offline sync
       refetchInterval: 1000 * 60 * 30, // Background sync every 30 mins
+      retry: 2,
     } as any
   });
 
   const { data: signs } = useListSigns({}, {
     query: {
-      enabled: isEnabled,
-      staleTime: Infinity
+      staleTime: Infinity,
+      retry: 2,
     } as any
   });
 
@@ -27,15 +26,13 @@ export function useOfflineSync(user: any) {
 
   // Sync Content (Questions/Signs)
   useEffect(() => {
-    if (questions && signs) {
-      if (Array.isArray(questions) && questions.length > 0) {
-        console.log("[Roadify] Syncing data for offline use...");
-        syncOfflineData(questions, signs);
-      }
+    if (questions && Array.isArray(questions) && questions.length > 0) {
+      console.log(`[Roadify Offline] Caching ${questions.length} questions and ${signs?.length || 0} signs for offline use...`);
+      syncOfflineData(questions, signs || []);
     }
   }, [questions, signs]);
 
-  // Sync Pending Results
+  // Sync Pending Results Queue
   useEffect(() => {
     const syncResults = async () => {
       if (isSyncingResults.current || !navigator.onLine) return;
@@ -44,7 +41,7 @@ export function useOfflineSync(user: any) {
       if (pending.length === 0) return;
 
       isSyncingResults.current = true;
-      console.log(`[Roadify] Found ${pending.length} pending results to sync...`);
+      console.log(`[Roadify Offline Sync] Processing ${pending.length} queued offline results...`);
 
       let successCount = 0;
       const syncedIds: string[] = [];
@@ -58,11 +55,12 @@ export function useOfflineSync(user: any) {
           successCount++;
           syncedIds.push(result.sessionId);
         } catch (e: any) {
-          // If the error is "Session already submitted", consider it a success for cleanup
+          // If the error is "Session already submitted" or 409 conflict, safely mark as synced
           if (e.message?.includes("already submitted") || e.status === 409) {
             syncedIds.push(result.sessionId);
+          } else {
+            console.error(`[Roadify Offline Sync] Retry scheduled for result ${result.sessionId}:`, e);
           }
-          console.error(`Failed to sync result ${result.sessionId}`, e);
         }
       }
 
@@ -71,8 +69,8 @@ export function useOfflineSync(user: any) {
 
         if (successCount > 0) {
           toast({
-            title: "Sync Complete",
-            description: `Successfully uploaded ${successCount} offline test results.`
+            title: "Offline Sync Complete",
+            description: `Successfully synchronized ${successCount} test result(s) to the cloud.`
           });
         }
       }
