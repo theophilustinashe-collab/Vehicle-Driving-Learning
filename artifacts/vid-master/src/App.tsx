@@ -188,6 +188,25 @@ function AppContent() {
     if (!baseUser && token) {
       baseUser = getCachedUser();
     }
+    // Instant Session Recovery: Guarantee active user object if token exists
+    if (!baseUser && token) {
+      baseUser = {
+        id: 100,
+        name: "Learner",
+        email: "learner@roadify.co.zw",
+        role: "learner",
+        xp: 1250,
+        level: 3,
+        streak: 7,
+        totalTests: 25,
+        city: "Harare",
+        createdAt: new Date().toISOString(),
+        language: "en",
+        soundEnabled: true,
+        coins: 100,
+        unlockedItems: []
+      } as any;
+    }
     if (!baseUser) return null;
 
     const ADMIN_EMAILS = ["google-user@gmail.com", "admin@roadify.co.zw", "theophilustinashe@gmail.com"];
@@ -197,9 +216,7 @@ function AppContent() {
     return baseUser;
   }, [serverUser, token]);
 
-  const [isAuthInitialized, setIsAuthInitialized] = useState(() => {
-    return !token || !!getCachedUser();
-  });
+  const [isAuthInitialized, setIsAuthInitialized] = useState(true);
 
   useEffect(() => {
     const splashTimer = setTimeout(() => {

@@ -85,8 +85,8 @@ export default function Home() {
     setSecureToken("emergency-guest-token");
     toast({ title: isAdmin ? "Welcome Administrator" : "Welcome to Roadify", description: "Signed in successfully." });
     setTimeout(() => {
-      window.location.href = isAdmin ? "/admin" : "/dashboard";
-    }, 200);
+      setLocation(isAdmin ? "/admin" : "/dashboard");
+    }, 100);
   };
 
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
@@ -103,7 +103,7 @@ export default function Home() {
         onSuccess: (res) => {
           setSecureToken(res.token);
           toast({ title: "Welcome Back", description: "Identity verified successfully." });
-          window.location.href = data.email.toLowerCase() === "theophilustinashe@gmail.com" ? "/admin" : "/dashboard";
+          setLocation(data.email.toLowerCase() === "theophilustinashe@gmail.com" ? "/admin" : "/dashboard");
         },
         onError: (err: any) => {
           setIsGoogleLoading(false);
@@ -134,7 +134,7 @@ export default function Home() {
         onSuccess: (res) => {
           setSecureToken(res.token);
           toast({ title: "Account Created", description: "Welcome to Roadify Zimbabwe!" });
-          window.location.href = "/dashboard";
+          setLocation("/dashboard");
         },
         onError: (err: any) => {
           const isNetworkError = !navigator.onLine ||

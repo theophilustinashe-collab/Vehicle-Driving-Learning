@@ -9,9 +9,20 @@ import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { variants, transitions } from "@/lib/motion";
 import { triggerHaptic } from "@/lib/native-bridge";
+import { getPendingResults } from "@/lib/offline";
+import { useMemo } from "react";
 
 export default function History() {
-  const { data: history, isLoading } = useGetTestHistory();
+  const { data: serverHistory, isLoading: isServerLoading } = useGetTestHistory();
+
+  const history = useMemo(() => {
+    if (serverHistory && serverHistory.length > 0) return serverHistory;
+    const pending = getPendingResults();
+    if (pending.length > 0) return pending;
+    return serverHistory || [];
+  }, [serverHistory]);
+
+  const isLoading = isServerLoading && !history.length;
 
   if (isLoading) {
     return (

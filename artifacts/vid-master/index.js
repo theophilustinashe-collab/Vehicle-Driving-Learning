@@ -60,12 +60,12 @@ function AppContent() {
     ? { html: BUNDLED_HTML, baseUrl: 'file:///android_asset/public/' }
     : { uri: currentUrl };
 
-  // Safety Timer: Guarantee loading overlay clears after 1.5s max
+  // Safety Timer: Guarantee loading overlay clears after 800ms max for instant UI launch
   useEffect(() => {
     const timer = setTimeout(() => {
       hasBootedRef.current = true;
       setIsLoading(false);
-    }, 1500);
+    }, 800);
     return () => clearTimeout(timer);
   }, [key]);
 
