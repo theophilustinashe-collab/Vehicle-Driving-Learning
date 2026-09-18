@@ -1,6 +1,6 @@
 /**
  * Roadify Centralized Motion System
- * Fast, smooth, and purposeful animations.
+ * Safe, immediate, and responsive animations (guarantees instant frame-1 visibility)
  */
 
 export const transitions: Record<string, any> = {
@@ -17,43 +17,43 @@ export const transitions: Record<string, any> = {
 
 export const variants = {
   fadeIn: {
-    initial: { opacity: 0 },
+    initial: { opacity: 1 },
     animate: { opacity: 1 },
-    exit: { opacity: 0 },
+    exit: { opacity: 1 },
   },
   fadeInUp: {
-    initial: { opacity: 0, y: 20 },
+    initial: { opacity: 1, y: 0 },
     animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
+    exit: { opacity: 1, y: 0 },
   },
   hoverLift: {
     rest: { y: 0, scale: 1 },
-    hover: { y: -8, scale: 1.02, transition: { type: "spring", stiffness: 400, damping: 25 } }
+    hover: { y: -4, scale: 1.01, transition: { type: "spring", stiffness: 400, damping: 25 } }
   },
   microInteraction: {
     rest: { scale: 1 },
-    tap: { scale: 0.96 },
-    hover: { scale: 1.03 }
+    tap: { scale: 0.98 },
+    hover: { scale: 1.01 }
   },
   fadeInDown: {
-    initial: { opacity: 0, y: -20 },
+    initial: { opacity: 1, y: 0 },
     animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: 20 },
+    exit: { opacity: 1, y: 0 },
   },
   slideInRight: {
-    initial: { opacity: 0, x: 20 },
+    initial: { opacity: 1, x: 0 },
     animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 },
+    exit: { opacity: 1, x: 0 },
   },
   slideInLeft: {
-    initial: { opacity: 0, x: -20 },
+    initial: { opacity: 1, x: 0 },
     animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: 20 },
+    exit: { opacity: 1, x: 0 },
   },
   scaleIn: {
-    initial: { opacity: 0, scale: 0.95 },
+    initial: { opacity: 1, scale: 1 },
     animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.95 },
+    exit: { opacity: 1, scale: 1 },
   },
   staggerContainer: {
     animate: {
@@ -63,16 +63,16 @@ export const variants = {
     },
   },
   listContainer: {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 1 },
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.08,
+        staggerChildren: 0.05,
       }
     }
   },
   listItem: {
-    hidden: { opacity: 0, y: 15 },
+    hidden: { opacity: 1, y: 0 },
     show: { opacity: 1, y: 0 }
   },
   mobileMenu: {
@@ -85,5 +85,5 @@ export const variants = {
   }
 };
 
-export const tapScale = 0.97;
-export const hoverScale = 1.02;
+export const tapScale = 0.98;
+export const hoverScale = 1.01;
