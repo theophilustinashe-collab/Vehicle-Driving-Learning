@@ -13,6 +13,7 @@ import * as Speech from 'expo-speech';
 const PROD_API_URL = process.env.EXPO_PUBLIC_API_URL ||
                       Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL ||
                       'https://vehicle-driving-learning-4.onrender.com';
+const WEB_PORT = 3001;
 
 // Embedded HTML Shell with Deterministic Entry Points (Prevents Stale Hash ERR_FILE_NOT_FOUND)
 const BUNDLED_HTML = `<!DOCTYPE html>
@@ -41,9 +42,18 @@ function AppContent() {
   const [canGoBack, setCanGoBack] = useState(false);
   const colorScheme = useColorScheme();
 
-  // Target local asset bundle for both Expo Go and Standalone APK
-  const webViewSource = (process.env.EXPO_PUBLIC_WEB_DEV_URL)
-    ? { uri: process.env.EXPO_PUBLIC_WEB_DEV_URL }
+  const isExpoGo = Constants.appOwnership === 'expo';
+
+  const expoIp = Constants.expoConfig?.hostUri?.split(':')[0] ||
+                 Constants.manifest2?.extra?.expoGo?.debuggerHost?.split(':')[0] ||
+                 Constants.manifest?.debuggerHost?.split(':')[0];
+
+  // In Expo Go, target local dev server or cloud endpoint so Expo Go can resolve assets
+  // In Standalone APK, target local embedded HTML bundle inside APK assets
+  const devWebUrl = process.env.EXPO_PUBLIC_WEB_DEV_URL || (expoIp ? `http://${expoIp}:${WEB_PORT}` : null);
+
+  const webViewSource = (isExpoGo && devWebUrl)
+    ? { uri: devWebUrl }
     : { html: BUNDLED_HTML, baseUrl: 'file:///android_asset/public/' };
 
   // Safety Timer: Guarantee loading overlay clears after 800ms max for instant UI launch
