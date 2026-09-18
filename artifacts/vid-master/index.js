@@ -9,29 +9,10 @@ import * as SecureStore from 'expo-secure-store';
 import * as Haptics from 'expo-haptics';
 import * as Speech from 'expo-speech';
 
-// Production Render API Configuration (Pure Cloud - No Vercel / No Supabase)
+// Unified Render Production Web + API Server Endpoint
 const PROD_API_URL = process.env.EXPO_PUBLIC_API_URL ||
                       Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL ||
                       'https://vehicle-driving-learning-4.onrender.com';
-const WEB_PORT = 3001;
-
-// Embedded HTML Shell with Deterministic Entry Points (Prevents Stale Hash ERR_FILE_NOT_FOUND)
-const BUNDLED_HTML = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Roadify Zimbabwe</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script defer src="./assets/app.js"></script>
-    <link rel="stylesheet" href="./assets/app.css">
-  </head>
-  <body style="background-color: #020617; margin: 0; padding: 0;">
-    <div id="root"></div>
-  </body>
-</html>`;
 
 function AppContent() {
   const [error, setError] = useState(null);
@@ -42,26 +23,19 @@ function AppContent() {
   const [canGoBack, setCanGoBack] = useState(false);
   const colorScheme = useColorScheme();
 
-  const isExpoGo = Constants.appOwnership === 'expo';
+  // Target live Render endpoint for Expo Go and Mobile WebViews
+  const targetUrl = process.env.EXPO_PUBLIC_WEB_DEV_URL || PROD_API_URL;
 
-  const expoIp = Constants.expoConfig?.hostUri?.split(':')[0] ||
-                 Constants.manifest2?.extra?.expoGo?.debuggerHost?.split(':')[0] ||
-                 Constants.manifest?.debuggerHost?.split(':')[0];
+  const webViewSource = { uri: targetUrl };
 
-  // In Expo Go, target local dev server or cloud endpoint so Expo Go can resolve assets
-  // In Standalone APK, target local embedded HTML bundle inside APK assets
-  const devWebUrl = process.env.EXPO_PUBLIC_WEB_DEV_URL || (expoIp ? `http://${expoIp}:${WEB_PORT}` : null);
+  console.log('[Roadify Native] WebView Source URI:', targetUrl);
 
-  const webViewSource = (isExpoGo && devWebUrl)
-    ? { uri: devWebUrl }
-    : { html: BUNDLED_HTML, baseUrl: 'file:///android_asset/public/' };
-
-  // Safety Timer: Guarantee loading overlay clears after 800ms max for instant UI launch
+  // Safety Timer: Guarantee loading overlay clears after 1.2s max
   useEffect(() => {
     const timer = setTimeout(() => {
       hasBootedRef.current = true;
       setIsLoading(false);
-    }, 800);
+    }, 1200);
     return () => clearTimeout(timer);
   }, [key]);
 
@@ -230,8 +204,8 @@ function AppContent() {
     const nativeEvt = e.nativeEvent || {};
     const code = nativeEvt.code ?? -1;
     const desc = nativeEvt.description || 'WebView Load Error';
-    const failingUrl = nativeEvt.url || 'local-bundle';
-    const domain = nativeEvt.domain || 'local-asset';
+    const failingUrl = nativeEvt.url || targetUrl;
+    const domain = nativeEvt.domain || 'render-api';
 
     console.warn(`[Roadify WebView Load Warning] Code: ${code}, Domain: ${domain}, Description: ${desc}, URL: ${failingUrl}`);
     hasBootedRef.current = true;
@@ -293,10 +267,6 @@ function AppContent() {
           pullToRefreshEnabled={true}
           geolocationEnabled={true}
           mixedContentMode="always"
-          allowFileAccess={true}
-          allowFileAccessFromFileURLs={true}
-          allowUniversalAccessFromFileURLs={true}
-          allowingReadAccessToURL="file:///android_asset/public/"
         />
       )}
     </SafeAreaView>
