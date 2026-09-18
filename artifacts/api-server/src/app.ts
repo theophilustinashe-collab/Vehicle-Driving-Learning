@@ -103,8 +103,8 @@ if (staticDir) {
   logger.info({ staticDir }, "Serving static web client");
   app.use(express.static(staticDir));
 
-  // Express 5 / path-to-regexp v8 wildcard syntax
-  app.get("{*path}", (req, res, next) => {
+  // Express 5 SPA catch-all middleware: handles root / and all non-API routes
+  app.use((req, res, next) => {
     if (req.path.startsWith("/api/")) return next();
     res.sendFile(path.join(staticDir, "index.html"));
   });
