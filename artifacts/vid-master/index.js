@@ -13,7 +13,6 @@ import * as Speech from 'expo-speech';
 const PROD_API_URL = process.env.EXPO_PUBLIC_API_URL ||
                       Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL ||
                       'https://vehicle-driving-learning-4.onrender.com';
-const WEB_PORT = 3001;
 
 // Embedded HTML Shell with Deterministic Entry Points (Prevents Stale Hash ERR_FILE_NOT_FOUND)
 const BUNDLED_HTML = `<!DOCTYPE html>
@@ -33,8 +32,6 @@ const BUNDLED_HTML = `<!DOCTYPE html>
   </body>
 </html>`;
 
-const LOCAL_ASSET_URL = 'file:///android_asset/public/index.html';
-
 function AppContent() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,21 +41,10 @@ function AppContent() {
   const [canGoBack, setCanGoBack] = useState(false);
   const colorScheme = useColorScheme();
 
-  const expoIp = Constants.expoConfig?.hostUri?.split(':')[0] ||
-                 Constants.manifest2?.extra?.expoGo?.debuggerHost?.split(':')[0] ||
-                 Constants.manifest?.debuggerHost?.split(':')[0];
-
-  // Target local asset bundle for APK, or local dev server in Expo Go
-  const initialServerUrl = (__DEV__ && expoIp && expoIp !== 'localhost' && expoIp !== '127.0.0.1')
-    ? `http://${expoIp}:${WEB_PORT}`
-    : LOCAL_ASSET_URL;
-
-  const [currentUrl, setCurrentUrl] = useState(initialServerUrl);
-
-  // Determine Source: Use inline HTML string with fixed asset filenames for local assets
-  const webViewSource = (currentUrl && currentUrl.startsWith('file://'))
-    ? { html: BUNDLED_HTML, baseUrl: 'file:///android_asset/public/' }
-    : { uri: currentUrl };
+  // Target local asset bundle for both Expo Go and Standalone APK
+  const webViewSource = (process.env.EXPO_PUBLIC_WEB_DEV_URL)
+    ? { uri: process.env.EXPO_PUBLIC_WEB_DEV_URL }
+    : { html: BUNDLED_HTML, baseUrl: 'file:///android_asset/public/' };
 
   // Safety Timer: Guarantee loading overlay clears after 800ms max for instant UI launch
   useEffect(() => {
@@ -234,8 +220,8 @@ function AppContent() {
     const nativeEvt = e.nativeEvent || {};
     const code = nativeEvt.code ?? -1;
     const desc = nativeEvt.description || 'WebView Load Error';
-    const failingUrl = nativeEvt.url || currentUrl || 'undefined';
-    const domain = nativeEvt.domain || (failingUrl.includes('://') ? failingUrl.split('://')[1].split('/')[0] : 'undefined');
+    const failingUrl = nativeEvt.url || 'local-bundle';
+    const domain = nativeEvt.domain || 'local-asset';
 
     console.warn(`[Roadify WebView Load Warning] Code: ${code}, Domain: ${domain}, Description: ${desc}, URL: ${failingUrl}`);
     hasBootedRef.current = true;
@@ -251,7 +237,6 @@ function AppContent() {
           <ActivityIndicator size="large" color="#4f46e5" />
           <Text style={styles.loadingText}>ROADIFY</Text>
           <Text style={styles.loadingSubtext}>Connecting to Render Engine...</Text>
-          {__DEV__ && <Text style={styles.devUrl}>{currentUrl}</Text>}
         </View>
       )}
 
